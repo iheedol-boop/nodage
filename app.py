@@ -141,7 +141,7 @@ if run_analysis:
         st.divider()
         
         # --- [변경: 2컬럼 레이아웃 설정] ---
-        col1, col2 = st.columns([1, 1.2]) # 비율 조절 (지표 1 : 차트 1.2)
+        col1, col2 = st.columns([1, 1]) # 비율 조절 (지표 1 : 차트 1)
 
         with col1:
             st.subheader("📍 계좌별 현황")
