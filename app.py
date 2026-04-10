@@ -127,8 +127,8 @@ if run_analysis:
                 )
 
 
-        
-        # 계좌별 자산 평가 및 비중
+
+       # --- [계좌별 자산 평가 및 비중 분석] ---
         edited_stock = edited_stock.sort_values(by="평가금액", ascending=False)
 
         acc_stock_sum = edited_stock.groupby("계좌명")["평가금액"].sum().reset_index()
@@ -140,12 +140,32 @@ if run_analysis:
 
         st.divider()
         
-        for i, row in final_df.iterrows():
-            st.metric(label=f"📍 {row['계좌명']}", value=f"{int(row['총자산']):,}원", delta=f"{row['수익률(%)']}%")
-        
-        st.plotly_chart(px.pie(final_df, values='총자산', names='계좌명', 
-                               title='💳 계좌별 자산 비중', hole=0.4), use_container_width=True)
+        # --- [변경: 2컬럼 레이아웃 설정] ---
+        col1, col2 = st.columns([1, 1.2]) # 비율 조절 (지표 1 : 차트 1.2)
 
+        with col1:
+            st.subheader("📍 계좌별 현황")
+            for i, row in final_df.iterrows():
+                st.metric(
+                    label=f"{row['계좌명']}", 
+                    value=f"{int(row['총자산']):,}원", 
+                    delta=f"{row['수익률(%)']}%"
+                )
+
+        with col2:
+            fig_pie = px.pie(
+                final_df, 
+                values='총자산', 
+                names='계좌명', 
+                title='💳 계좌별 자산 비중', 
+                hole=0.4,
+                color_discrete_sequence=px.colors.qualitative.Pastel # 파이 차트도 파스텔톤 적용
+            )
+            fig_pie.update_layout(showlegend=True, margin=dict(t=50, b=0, l=0, r=0))
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        
+    
 
 
         
