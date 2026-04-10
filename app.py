@@ -94,16 +94,25 @@ if run_analysis:
                                title='💳 계좌별 자산 비중', hole=0.4), use_container_width=True)
         
         # [변경 핵심] path 순서를 ['종목명', '계좌명']으로 변경
+        # --- [변경 부분: Sunburst 차트 설정] ---
         fig_sun = px.sunburst(
             edited_stock, 
             path=['종목명', '계좌명'], 
             values='평가금액', 
-            title='🔍 종목별 상세 비중 (종목 → 계좌 순)',
-            color='평가금액',
-            color_continuous_scale='Blues'
+            title='🔍 종목별 상세 비중 (랜덤 색상)',
+            # color='평가금액' 대신 '종목명'을 기준으로 색상을 지정하거나 
+            # 아래와 같이 컬러 팔레트를 직접 지정합니다.
+            color='종목명', 
+            color_discrete_sequence=px.colors.qualitative.Pastel # 부드러운 파스텔톤 랜덤 색상
+            # 또는 px.colors.qualitative.Set3, Dark24 등 다양한 팔레트 사용 가능
         )
-        fig_sun.update_traces(textinfo="label+percent root") # 전체 대비 비율 표시
+        
+        fig_sun.update_traces(
+            textinfo="label+percent root", 
+            insidetextorientation='radial' # 텍스트 방향을 보기 좋게 조절
+        )
         st.plotly_chart(fig_sun, use_container_width=True)
+
 
         st.subheader("📋 상세 요약")
         st.dataframe(final_df.style.format({
