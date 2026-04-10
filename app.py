@@ -126,10 +126,6 @@ if run_analysis:
                     delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
                 )
 
-        st.divider()
-        
-
-
 
         
         # 계좌별 자산 평가 및 비중
