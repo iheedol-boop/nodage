@@ -135,3 +135,45 @@ if run_analysis:
         st.dataframe(final_df.style.format({
             "총 투자원금": "{:,}", "예수금": "{:,}", "평가금액": "{:,}", "총자산": "{:,}"
         }), use_container_width=True)
+
+
+        # --- [추가: 종목별 변동 현황 출력] ---
+        st.subheader("📊 종목별 실시간 변동")
+        
+        # 종목이 많을 수 있으므로 4컬럼씩 나누어 배치
+        stock_cols = st.columns(4)
+        for idx, (i, row) in enumerate(edited_stock.iterrows()):
+            with stock_cols[idx % 4]:
+                # 전일 대비 변동액 계산
+                change_amt = row['현재가'] - row['전일가']
+                st.metric(
+                    label=row['종목명'], 
+                    value=f"{row['현재가']:,}원", 
+                    delta=f"{change_amt:,}원 ({row['변동률(%)']}%)"
+                )
+
+        st.divider()
+
+        # --- [추가: 상세 데이터 테이블] ---
+        st.subheader("📑 보유 종목 상세 내역")
+        
+        # 출력용 데이터프레임 정리 (사용자에게 필요한 컬럼만 추출)
+        display_stock_df = edited_stock[[
+            '계좌명', '종목명', '종목코드', '보유수량', '현재가', '전일가', '변동률(%)', '평가금액'
+        ]].copy()
+
+        # 스타일링: 변동률이 양수면 빨간색, 음수면 파란색 (선택 사항)
+        def color_variant(val):
+            color = 'red' if val > 0 else 'blue' if val < 0 else 'black'
+            return f'color: {color}'
+
+        st.dataframe(
+            display_stock_df.style.format({
+                "현재가": "{:,}원", 
+                "전일가": "{:,}원", 
+                "평가금액": "{:,}원", 
+                "변동률(%)": "{:+.2f}%"
+            }).applymap(color_variant, subset=['변동률(%)']),
+            use_container_width=True
+        )
+
