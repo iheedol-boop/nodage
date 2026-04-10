@@ -166,27 +166,34 @@ if run_analysis:
 
 
 
-        # --- [종목별 비중 & 상세 요약 2컬럼 배치] ---
+         # --- [종목별 비중 상세 (전체 너비 사용)] ---
         st.divider()
-        c3, c4 = st.columns([1.2, 1]) # 차트 비중을 약간 더 넓게 설정
+        
+        # 1. Sunburst 차트 (전체 너비)
+        fig_sun = px.sunburst(
+            edited_stock, 
+            path=['종목명', '계좌명'], 
+            values='평가금액', 
+            title='🔍 종목별 상세 비중',
+            color='종목명', 
+            color_discrete_sequence=px.colors.qualitative.Pastel
+        )
+        fig_sun.update_traces(
+            textinfo="label+percent root", 
+            insidetextorientation='radial'
+        )
+        # 상단 여백을 주고 차트 크기를 충분히 확보
+        fig_sun.update_layout(margin=dict(t=50, b=10, l=10, r=10), height=600) 
+        
+        st.plotly_chart(fig_sun, use_container_width=True)
 
-        with c3:
-            # 1. Sunburst 차트
-            fig_sun = px.sunburst(
-                edited_stock, 
-                path=['종목명', '계좌명'], 
-                values='평가금액', 
-                title='🔍 종목별 상세 비중',
-                color='종목명', 
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            fig_sun.update_traces(
-                textinfo="label+percent root", 
-                insidetextorientation='radial'
-            )
-            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0))
-            st.plotly_chart(fig_sun, use_container_width=True)
-        with c4:
+        # (참고) 상세 요약 표를 차트 아래에 배치하고 싶다면 여기에 추가
+        st.subheader("📋 계좌별 요약")
+        summary_df = final_df.set_index("계좌명")[[
+            "총 투자원금", "예수금", "평가금액", "총자산", "수익률(%)"
+        ]].T
+        st.dataframe(summary_df.style.format("{:,.0f}"), use_container_width=True)
+
        
 
 
