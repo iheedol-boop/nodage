@@ -164,36 +164,44 @@ if run_analysis:
             fig_pie.update_layout(showlegend=True, margin=dict(t=50, b=0, l=0, r=0))
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        
-    
 
 
-        
-        # --- [종목별 상세 비중] ---
-        fig_sun = px.sunburst(
-            edited_stock, 
-            path=['종목명', '계좌명'], 
-            values='평가금액', 
-            title='🔍 종목별 상세 비중 (랜덤 색상)',
-            # color='평가금액' 대신 '종목명'을 기준으로 색상을 지정하거나 
-            # 아래와 같이 컬러 팔레트를 직접 지정합니다.
-            color='종목명', 
-            color_discrete_sequence=px.colors.qualitative.Pastel # 부드러운 파스텔톤 랜덤 색상
-            # 또는 px.colors.qualitative.Set3, Dark24 등 다양한 팔레트 사용 가능
-        )
-        
-        fig_sun.update_traces(
-            textinfo="label+percent root", 
-            insidetextorientation='radial' # 텍스트 방향을 보기 좋게 조절
-        )
-        st.plotly_chart(fig_sun, use_container_width=True)
+        # --- [종목별 비중 & 상세 요약 2컬럼 배치] ---
+        st.divider()
+        c3, c4 = st.columns([1.2, 1]) # 차트 비중을 약간 더 넓게 설정
 
-        
-        # --- [상세 요약] ---
-        st.subheader("📋 상세 요약")
-        st.dataframe(final_df.style.format({
-            "총 투자원금": "{:,}", "예수금": "{:,}", "평가금액": "{:,}", "총자산": "{:,}"
-        }), use_container_width=True)
+        with c3:
+            # 1. Sunburst 차트
+            fig_sun = px.sunburst(
+                edited_stock, 
+                path=['종목명', '계좌명'], 
+                values='평가금액', 
+                title='🔍 종목별 상세 비중',
+                color='종목명', 
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            fig_sun.update_traces(
+                textinfo="label+percent root", 
+                insidetextorientation='radial'
+            )
+            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0))
+            st.plotly_chart(fig_sun, use_container_width=True)
+
+        with c4:
+            # 2. 상세 요약 피벗 (행/열 전환)
+            st.subheader("📋 계좌별 요약")
+            
+            # 피벗을 위해 '계좌명'을 인덱스로 설정하고 필요한 컬럼만 추출
+            summary_df = final_df.set_index("계좌명")[[
+                "총 투자원금", "예수금", "평가금액", "총자산", "수익률(%)"
+            ]]
+            
+            # .T 를 사용하여 행과 열을 전환 (피벗)
+            pivoted_df = summary_df.T
+
+            # 포맷팅 적용하여 출력
+            st.dataframe(pivoted_df.style.format("{:,.0f}"), use_container_width=True)
+
 
 
        
