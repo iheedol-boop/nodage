@@ -128,41 +128,55 @@ if run_analysis:
 
 
 
-       # --- [계좌별 자산 평가 및 비중 분석] ---
-        edited_stock = edited_stock.sort_values(by="평가금액", ascending=False)
+               # --- [계좌별 자산 평가 및 비중 분석 (계층적 수정)] ---
+        st.divider()
+        st.subheader("🏦 계좌 및 종목별 계층 분석")
 
+        # 1. 데이터 정리: 계좌별 합계 및 수익률 계산
         acc_stock_sum = edited_stock.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(edited_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
         
-        final_df = final_df.sort_values(by="총자산", ascending=False)
-        final_df["수익률(%)"] = ((final_df["총자산"] / final_df["총 투자원금"] - 1) * 100).round(2)
+        # 수익률 계산 (분모 0 체크)
+        final_df["수익률(%)"] = final_df.apply(
+            lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
+        )
 
-        st.divider()
-        
-        # --- [변경: 2컬럼 레이아웃 설정] ---
-        col1, col2 = st.columns([1, 1]) # 비율 조절 (지표 1 : 차트 1)
+        # 2. 시각화 레이아웃 (상단 지표 / 하단 트리맵)
+        col1, col2 = st.columns([1, 2])
 
         with col1:
-            st.subheader("📍 계좌별 현황")
-            for i, row in final_df.iterrows():
+            # 계좌별 요약 지표 (수직 나열)
+            for _, row in final_df.sort_values("총자산", ascending=False).iterrows():
                 st.metric(
-                    label=f"{row['계좌명']}", 
+                    label=f"📂 {row['계좌명']}", 
                     value=f"{int(row['총자산']):,}원", 
                     delta=f"{row['수익률(%)']}%"
                 )
 
         with col2:
-            fig_pie = px.pie(
-                final_df, 
-                values='총자산', 
-                names='계좌명', 
-                title='💳 계좌별 자산 비중', 
-                hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Pastel # 파이 차트도 파스텔톤 적용
+            # 계층적 트리맵 데이터 구성 (계좌 내 예수금도 포함시키기 위해 데이터 재구성)
+            # 1) 주식 데이터
+            tree_data = edited_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
+            # 2) 예수금 데이터 추가 (각 계좌별로)
+            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
+            cash_data['항목'] = "💰 예수금"
+            
+            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
+            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0] # 0원인 항목 제외
+
+            # 트리맵 시각화
+            fig_tree = px.treemap(
+                hierarchical_df, 
+                path=[px.Constant("전체 자산"), '계좌명', '항목'], # 계층 구조: 전체 > 계좌 > 종목/예수금
+                values='금액',
+                color='계좌명',
+                color_discrete_sequence=px.colors.qualitative.Pastel,
+                title="📊 계층적 자산 구성 (계좌 > 종목)"
             )
-            fig_pie.update_layout(showlegend=True, margin=dict(t=50, b=0, l=0, r=0))
-            st.plotly_chart(fig_pie, use_container_width=True)
+            fig_tree.update_traces(textinfo="label+value+percent parent")
+            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=450)
+            st.plotly_chart(fig_tree, use_container_width=True)
 
 
 
