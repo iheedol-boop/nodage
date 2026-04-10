@@ -79,7 +79,7 @@ if run_analysis:
                 name_match = all_listing[all_listing['Code'] == code]['Name']
                 name = name_match.values[0] if not name_match.empty else "미등록"
                 
-                if code='411060' :
+                if code=='411060' :
                     current_price=current_price*7.15
                     prev_close=prev_close*7.15
 
