@@ -52,6 +52,9 @@ with c1:
 with c2:
     run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
+
+
+
 # --- [분석 및 시각화] ---
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
@@ -92,52 +95,10 @@ if run_analysis:
         edited_stock["변동률(%)"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["변동률(%)"])
         edited_stock["평가금액"] = edited_stock["보유수량"] * edited_stock["현재가"]
 
-        # 비중 순 정렬
-        edited_stock = edited_stock.sort_values(by="평가금액", ascending=False)
 
-        acc_stock_sum = edited_stock.groupby("계좌명")["평가금액"].sum().reset_index()
-        final_df = pd.merge(edited_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
-        final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
+
         
-        final_df = final_df.sort_values(by="총자산", ascending=False)
-        final_df["수익률(%)"] = ((final_df["총자산"] / final_df["총 투자원금"] - 1) * 100).round(2)
-
-        st.divider()
-        
-        for i, row in final_df.iterrows():
-            st.metric(label=f"📍 {row['계좌명']}", value=f"{int(row['총자산']):,}원", delta=f"{row['수익률(%)']}%")
-        
-        st.plotly_chart(px.pie(final_df, values='총자산', names='계좌명', 
-                               title='💳 계좌별 자산 비중', hole=0.4), use_container_width=True)
-        
-        # [변경 핵심] path 순서를 ['종목명', '계좌명']으로 변경
-        # --- [변경 부분: Sunburst 차트 설정] ---
-        fig_sun = px.sunburst(
-            edited_stock, 
-            path=['종목명', '계좌명'], 
-            values='평가금액', 
-            title='🔍 종목별 상세 비중 (랜덤 색상)',
-            # color='평가금액' 대신 '종목명'을 기준으로 색상을 지정하거나 
-            # 아래와 같이 컬러 팔레트를 직접 지정합니다.
-            color='종목명', 
-            color_discrete_sequence=px.colors.qualitative.Pastel # 부드러운 파스텔톤 랜덤 색상
-            # 또는 px.colors.qualitative.Set3, Dark24 등 다양한 팔레트 사용 가능
-        )
-        
-        fig_sun.update_traces(
-            textinfo="label+percent root", 
-            insidetextorientation='radial' # 텍스트 방향을 보기 좋게 조절
-        )
-        st.plotly_chart(fig_sun, use_container_width=True)
-
-
-        st.subheader("📋 상세 요약")
-        st.dataframe(final_df.style.format({
-            "총 투자원금": "{:,}", "예수금": "{:,}", "평가금액": "{:,}", "총자산": "{:,}"
-        }), use_container_width=True)
-
-
-        # --- [추가: 종목별 변동 현황 출력] ---
+        # --- [종목별 변동 현황 출력] ---
         st.subheader("📊 종목별 실시간 변동 (통합)")
         
         # 1. 종목코드별로 그룹화하여 수량과 평가금액을 합산 (중복 제거)
@@ -166,5 +127,59 @@ if run_analysis:
                 )
 
         st.divider()
+        
+
+
+
+        
+        # 계좌별 자산 평가 및 비중
+        edited_stock = edited_stock.sort_values(by="평가금액", ascending=False)
+
+        acc_stock_sum = edited_stock.groupby("계좌명")["평가금액"].sum().reset_index()
+        final_df = pd.merge(edited_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
+        final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
+        
+        final_df = final_df.sort_values(by="총자산", ascending=False)
+        final_df["수익률(%)"] = ((final_df["총자산"] / final_df["총 투자원금"] - 1) * 100).round(2)
+
+        st.divider()
+        
+        for i, row in final_df.iterrows():
+            st.metric(label=f"📍 {row['계좌명']}", value=f"{int(row['총자산']):,}원", delta=f"{row['수익률(%)']}%")
+        
+        st.plotly_chart(px.pie(final_df, values='총자산', names='계좌명', 
+                               title='💳 계좌별 자산 비중', hole=0.4), use_container_width=True)
+
+
+
+        
+        # --- [종목별 상세 비중] ---
+        fig_sun = px.sunburst(
+            edited_stock, 
+            path=['종목명', '계좌명'], 
+            values='평가금액', 
+            title='🔍 종목별 상세 비중 (랜덤 색상)',
+            # color='평가금액' 대신 '종목명'을 기준으로 색상을 지정하거나 
+            # 아래와 같이 컬러 팔레트를 직접 지정합니다.
+            color='종목명', 
+            color_discrete_sequence=px.colors.qualitative.Pastel # 부드러운 파스텔톤 랜덤 색상
+            # 또는 px.colors.qualitative.Set3, Dark24 등 다양한 팔레트 사용 가능
+        )
+        
+        fig_sun.update_traces(
+            textinfo="label+percent root", 
+            insidetextorientation='radial' # 텍스트 방향을 보기 좋게 조절
+        )
+        st.plotly_chart(fig_sun, use_container_width=True)
+
+        
+        # --- [상세 요약] ---
+        st.subheader("📋 상세 요약")
+        st.dataframe(final_df.style.format({
+            "총 투자원금": "{:,}", "예수금": "{:,}", "평가금액": "{:,}", "총자산": "{:,}"
+        }), use_container_width=True)
+
+
+       
 
 
