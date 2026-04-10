@@ -54,25 +54,42 @@ with c2:
 
 # --- [분석 및 시각화] ---
 if run_analysis:
-    with st.spinner("시세 로딩 중..."):
-        edited_stock["종목코드"] = edited_stock["종목코드"].astype(str).str.zfill(6)
-        
-        current_prices = []
-        names = []
-        for code in edited_stock["종목코드"]:
+    with st.spinner("시세 및 변동 정보 로딩 중..."):
+        unique_codes = edited_stock["종목코드"].unique()
+        stock_info_dict = {}
+
+        for code in unique_codes:
             try:
+                # 최근 2거래일 데이터를 가져와 현재가와 전일가 추출
+                df = fdr.DataReader(code).tail(2)
+                if len(df) >= 2:
+                    current_price = int(df.iloc[-1]['Close'])   # 오늘 종가(현재가)
+                    prev_close = int(df.iloc[-2]['Close'])     # 전일 종가
+                    # 변동률 계산: (현재가 - 전일가) / 전일가 * 100
+                    change_rate = round(((current_price - prev_close) / prev_close) * 100, 2)
+                else:
+                    current_price = int(df.iloc[-1]['Close']) if not df.empty else 0
+                    prev_close = current_price
+                    change_rate = 0
+                
+                # 종목명 찾기
                 name_match = all_listing[all_listing['Code'] == code]['Name']
                 name = name_match.values[0] if not name_match.empty else "미등록"
-                # 데이터 수집 최적화 (1일치)
-                price = fdr.DataReader(code).iloc[-1]['Close']
-                names.append(name)
-                current_prices.append(int(price))
+
+                stock_info_dict[code] = {
+                    "종목명": name,
+                    "현재가": current_price,
+                    "전일가": prev_close,
+                    "변동률(%)": change_rate
+                }
             except:
-                names.append("코드확인")
-                current_prices.append(0)
-        
-        edited_stock["종목명"] = names
-        edited_stock["현재가"] = current_prices
+                stock_info_dict[code] = {"종목명": "코드확인", "현재가": 0, "전일가": 0, "변동률(%)": 0}
+
+        # 데이터프레임에 매핑
+        edited_stock["종목명"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["종목명"])
+        edited_stock["현재가"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["현재가"])
+        edited_stock["전일가"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["전일가"])
+        edited_stock["변동률(%)"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["변동률(%)"])
         edited_stock["평가금액"] = edited_stock["보유수량"] * edited_stock["현재가"]
 
         # 비중 순 정렬
