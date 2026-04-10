@@ -138,19 +138,33 @@ if run_analysis:
 
 
         # --- [추가: 종목별 변동 현황 출력] ---
-        st.subheader("📊 종목별 실시간 변동")
+        st.subheader("📊 종목별 실시간 변동 (통합)")
         
-        # 종목이 많을 수 있으므로 4컬럼씩 나누어 배치
+        # 1. 종목코드별로 그룹화하여 수량과 평가금액을 합산 (중복 제거)
+        # 현재가, 전일가, 변동률은 동일하므로 first()를 사용합니다.
+        unique_stock_display = edited_stock.groupby("종목코드").agg({
+            '종목명': 'first',
+            '현재가': 'first',
+            '전일가': 'first',
+            '변동률(%)': 'first',
+            '보유수량': 'sum',
+            '평가금액': 'sum'
+        }).reset_index()
+
+        # 2. 변동률 순으로 정렬
+        unique_stock_display = unique_stock_display.sort_values(by="변동률(%)", ascending=False)
+
+        # 3. 화면 출력 (4컬럼 레이아웃)
         stock_cols = st.columns(4)
-        for idx, (i, row) in enumerate(edited_stock.iterrows()):
+        for idx, (i, row) in enumerate(unique_stock_display.iterrows()):
             with stock_cols[idx % 4]:
-                # 전일 대비 변동액 계산
-                change_amt = row['현재가'] - row['전일가']
+                change_amt = int(row['현재가'] - row['전일가'])
                 st.metric(
                     label=row['종목명'], 
-                    value=f"{row['현재가']:,}원", 
-                    delta=f"{change_amt:,}원 ({row['변동률(%)']}%)"
+                    value=f"{int(row['현재가']):,}원", 
+                    delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
                 )
 
         st.divider()
+
 
