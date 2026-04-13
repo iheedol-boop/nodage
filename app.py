@@ -31,7 +31,7 @@ all_listing = get_stock_list()
 
 # --- [입력 섹션: 접힌 상태] ---
 with st.expander("💳 1. 계좌 정보 설정", expanded=False):
-    default_acc = {"계좌명": ["주식 일반", "ISA계좌"], "총 투자원금": 0, "예수금": 0}
+    default_acc = {"계좌명": ["퇴직연금", "ISA계좌", "김시연", "금현물"], "총 투자원금": [55100000,0,0,0], "예수금": [0,0,0,0]}
     df_acc = load_data(ACC_FILE, default_acc)
     edited_acc = st.data_editor(df_acc, num_rows="dynamic", use_container_width=True, key="acc_edit")
 
@@ -41,18 +41,7 @@ with st.expander("📈 2. 보유 종목 입력", expanded=False):
     df_stock['종목코드'] = df_stock['종목코드'].astype(str).str.zfill(6)
     edited_stock = st.data_editor(df_stock, num_rows="dynamic", use_container_width=True, key="stock_edit")
 
-c1, c2 = st.columns(2)
-with c1:
-    if st.button("💾 데이터 저장", use_container_width=True):
-        if "종목코드" in edited_stock.columns:
-            edited_stock["종목코드"] = edited_stock["종목코드"].astype(str).str.zfill(6)
-        save_data(edited_acc, ACC_FILE)
-        save_data(edited_stock, STOCK_FILE)
-        st.success("저장 완료!")
-with c2:
-    run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
-
-
+run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
 
 # --- [분석 및 시각화] ---
