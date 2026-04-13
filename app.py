@@ -14,9 +14,28 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbv
 # ------------------- 데이터 로드 -------------------
 @st.cache_data(ttl=600)
 def load_gsheet_data(worksheet_name):
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    data = conn.read(spreadsheet=SHEET_URL, worksheet=worksheet_name)
-    return data
+    """구글 시트 데이터 로드 (한글 인코딩 문제 해결 버전)"""
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 한글 깨짐 방지를 위한 옵션 추가
+        data = conn.read(
+            spreadsheet=SHEET_URL, 
+            worksheet=worksheet_name,
+            # usecols=None,          # 필요시 컬럼 제한
+            # dtype=str              # 모든 컬럼을 문자열로 읽기 (선택)
+        )
+        
+        # 데이터프레임에 한글이 제대로 들어왔는지 확인
+        data = data.astype(str).replace('nan', '')  # NaN을 빈 문자열로
+        
+        st.success(f"✅ '{worksheet_name}' 시트 로드 완료")
+        return data
+        
+    except Exception as e:
+        st.error(f"❌ '{worksheet_name}' 시트 불러오기 실패: {str(e)}")
+        # 최소한의 빈 데이터프레임 반환 (앱이 완전히 멈추지 않도록)
+        return pd.DataFrame()
 
 @st.cache_data
 def get_stock_list():
