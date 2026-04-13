@@ -11,6 +11,9 @@ st.title("📊 구글 시트 연동 자산 관리")
 # 구글 시트 URL (본인 시트로 변경하세요)
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbvADKr2FnyiQLlHgd8"
 
+st.write("**시트 URL:**", SHEET_URL)
+st.write("**시도 중인 워크시트:** account, stock")
+
 # ------------------- 데이터 로드 -------------------
 @st.cache_data(ttl=600)
 def load_gsheet_data(worksheet_name):
