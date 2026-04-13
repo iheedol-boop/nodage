@@ -4,22 +4,26 @@ import pandas as pd
 import plotly.express as px
 import os
 
-# 파일 저장 경로
-ACC_FILE = "account_data.csv"
-STOCK_FILE = "stock_data.csv"
+import streamlit as st
+import FinanceDataReader as fdr
+import pandas as pd
+import plotly.express as px
+from streamlit_gsheets import GSheetsConnection
 
-st.set_page_config(page_title="자산 관리", layout="centered") 
-st.title("💰 자산 관리 매니저")
+# 설정
+st.set_page_config(page_title="자산 관리 (G-Sheet)", layout="centered") 
+st.title("📊 구글 시트 연동 자산 관리")
 
-def load_data(file_path, default_data):
-    if os.path.exists(file_path):
-        if "stock" in file_path:
-            return pd.read_csv(file_path, dtype={'종목코드': str})
-        return pd.read_csv(file_path)
-    return pd.DataFrame(default_data)
+# --- [데이터 불러오기 설정] ---
+# 구글 시트 URL (본인의 시트 주소로 교체하세요)
+# 시트 내에 'account' 탭과 'stock' 탭이 각각 있어야 합니다.
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbvADKr2FnyiQLlHgd8/edit?usp=sharing"
 
-def save_data(df, file_path):
-    df.to_csv(file_path, index=False, encoding='utf-8-sig')
+@st.cache_data(ttl=600) # 10분마다 캐시 갱신
+def load_gsheet_data(worksheet_name):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    data = conn.read(spreadsheet=SHEET_URL, worksheet=worksheet_name)
+    return data
 
 @st.cache_data
 def get_stock_list():
@@ -27,30 +31,26 @@ def get_stock_list():
     etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
     return pd.concat([stocks, etfs], ignore_index=True)
 
+# 기초 데이터 로드
 all_listing = get_stock_list()
 
-# --- [입력 섹션: 접힌 상태] ---
-with st.expander("💳 1. 계좌 정보 설정", expanded=False):
-    default_acc = {"계좌명": ["주식 일반", "ISA계좌"], "총 투자원금": 0, "예수금": 0}
-    df_acc = load_data(ACC_FILE, default_acc)
-    edited_acc = st.data_editor(df_acc, num_rows="dynamic", use_container_width=True, key="acc_edit")
+try:
+    df_acc = load_gsheet_data("account")
+    df_stock = load_gsheet_data("stock")
+    st.success("✅ 구글 시트 데이터 로드 완료")
+except Exception as e:
+    st.error(f"❌ 데이터를 불러올 수 없습니다. URL과 시트 이름을 확인하세요: {e}")
+    st.stop()
 
-with st.expander("📈 2. 보유 종목 입력", expanded=False):
-    default_stock = {"계좌명": ["주식 일반", "주식 일반", "ISA계좌"], "종목코드": ["005930", "000660", "453810"], "보유수량": 0}
-    df_stock = load_data(STOCK_FILE, default_stock)
-    df_stock['종목코드'] = df_stock['종목코드'].astype(str).str.zfill(6)
-    edited_stock = st.data_editor(df_stock, num_rows="dynamic", use_container_width=True, key="stock_edit")
+# --- [화면 구성] ---
+with st.expander("📝 불러온 데이터 확인", expanded=False):
+    c1, c2 = st.columns(2)
+    c1.write("**계좌 정보**")
+    c1.dataframe(df_acc, use_container_width=True)
+    c2.write("**보유 종목**")
+    c2.dataframe(df_stock, use_container_width=True)
 
-c1, c2 = st.columns(2)
-with c1:
-    if st.button("💾 데이터 저장", use_container_width=True):
-        if "종목코드" in edited_stock.columns:
-            edited_stock["종목코드"] = edited_stock["종목코드"].astype(str).str.zfill(6)
-        save_data(edited_acc, ACC_FILE)
-        save_data(edited_stock, STOCK_FILE)
-        st.success("저장 완료!")
-with c2:
-    run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
+run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
 
 
