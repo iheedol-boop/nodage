@@ -31,7 +31,7 @@ all_listing = get_stock_list()
 
 # --- [입력 섹션: 접힌 상태] ---
 with st.expander("💳 1. 계좌 정보 설정", expanded=False):
-    default_acc = {"계좌명": ["퇴직연금", "ISA계좌", "김시연", "금현물"], "총 투자원금": [55100000,0,0,0], "예수금": [0,0,0,0]}
+    default_acc = {"계좌명": ["퇴직연금", "ISA계좌", "김시연", "금현물"], "총 투자원금": [55100000,40167632,20000000,25000000], "예수금": [12431463,31622391,5815765,15028074]}
     df_acc = load_data(ACC_FILE, default_acc)
     edited_acc = st.data_editor(df_acc, num_rows="dynamic", use_container_width=True, key="acc_edit")
 
