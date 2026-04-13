@@ -28,8 +28,8 @@ def get_stock_list():
 all_listing = get_stock_list()
 
 try:
-    df_acc = load_gsheet_data("account")
-    df_stock = load_gsheet_data("stock")
+    df_acc = load_gsheet_data("계좌")
+    df_stock = load_gsheet_data("보유")
     st.success("✅ 구글 시트 데이터 로드 완료")
 except Exception as e:
     st.error(f"❌ 데이터를 불러올 수 없습니다: {e}")
