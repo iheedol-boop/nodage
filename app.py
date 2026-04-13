@@ -3,11 +3,6 @@ import FinanceDataReader as fdr
 import pandas as pd
 import plotly.express as px
 import os
-
-import streamlit as st
-import FinanceDataReader as fdr
-import pandas as pd
-import plotly.express as px
 from streamlit_gsheets import GSheetsConnection
 
 # 설정
