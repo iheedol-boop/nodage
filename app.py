@@ -36,7 +36,18 @@ with st.expander("💳 1. 계좌 정보 설정", expanded=False):
     edited_acc = st.data_editor(df_acc, num_rows="dynamic", use_container_width=True, key="acc_edit")
 
 with st.expander("📈 2. 보유 종목 입력", expanded=False):
-    default_stock = {"계좌명": ["주식 일반", "주식 일반", "ISA계좌"], "종목코드": ["005930", "000660", "453810"], "보유수량": 0}
+    default_stock = {"계좌명": ["퇴직연금","퇴직연금",
+                             "ISA계좌""ISA계좌""ISA계좌""ISA계좌", 
+                             "김시연", "김시연", "김시연", "김시연", 
+                             "금현물"],
+                     "종목코드": ["379800","484790",
+                              "069500","229200","379800","484790",
+                              "069500","229200","379800","484790",
+                             "411060"], 
+                     "보유수량": [0,0,
+                              0,0,0,0,
+                              0,0,0,0,
+                              0}
     df_stock = load_data(STOCK_FILE, default_stock)
     df_stock['종목코드'] = df_stock['종목코드'].astype(str).str.zfill(6)
     edited_stock = st.data_editor(df_stock, num_rows="dynamic", use_container_width=True, key="stock_edit")
