@@ -9,7 +9,7 @@ st.set_page_config(page_title="자산 관리 (G-Sheet)", layout="wide")
 st.title("📊 구글 시트 연동 자산 관리")
 
 # 구글 시트 URL (본인 시트로 변경하세요)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbvADKr2FnyiQLlHgd8/edit?usp=sharing"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbvADKr2FnyiQLlHgd8"
 
 # ------------------- 데이터 로드 -------------------
 @st.cache_data(ttl=600)
