@@ -2,7 +2,7 @@ import streamlit as st
 import FinanceDataReader as fdr
 import pandas as pd
 import plotly.express as px
-from streamlit_gsheets import GSheetsConnection
+from st_gsheets_connection import GSheetsConnection
 
 # ------------------- 설정 -------------------
 st.set_page_config(page_title="자산 관리 (G-Sheet)", layout="wide")
