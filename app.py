@@ -45,8 +45,8 @@ with st.expander("📈 2. 보유 종목 입력", expanded=False):
                               "069500","229200","379800","484790",
                              "411060"], 
                      "보유수량": [300,4382,
-                              1,1,400,1,
-                              1,1,200,1000,
+                              11,1,400,1,
+                              1,1,260,1000,
                               46]}
     df_stock = load_data(STOCK_FILE, default_stock)
     df_stock['종목코드'] = df_stock['종목코드'].astype(str).str.zfill(6)
