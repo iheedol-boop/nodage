@@ -19,16 +19,13 @@ st.title("📊 구글 시트 연동 자산 관리")
 
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1T5DHiuhiYdnoLMKi1fzAQXEPfbvADKr2FnyiQLlHgd8"
 
-# ------------------- 시트(탭) 리스트 불러오기 함수 -------------------
+# ------------------- 시트(탭) 리스트 불러오기 함수 (수정됨) -------------------
 @st.cache_data(ttl=300)
 def get_worksheet_list():
-    """구글 시트의 모든 탭(워크시트) 이름 리스트 반환"""
+    """구글 시트의 모든 탭 이름 리스트 반환"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        # 내부 gspread client 접근
-        client = conn._client  # 또는 conn.client (버전에 따라 다를 수 있음)
-        spreadsheet = client.open_by_url(SHEET_URL)   # 또는 open_by_key(ID)
-        worksheets = spreadsheet.worksheets()
+        worksheets = conn.worksheets()          # ← 핵심 수정 부분
         sheet_names = [ws.title for ws in worksheets]
         return sheet_names
     except Exception as e:
@@ -36,50 +33,45 @@ def get_worksheet_list():
         return []
 
 # ------------------- 데이터 새로고침 버튼 -------------------
-if st.button("🔄 전체 데이터 새로고침", type="secondary", use_container_width=True):
+if st.button("🔄 전체 새로고침", type="secondary", use_container_width=True):
     st.cache_data.clear()
-    st.success("캐시 초기화 완료 → 앱을 새로 불러옵니다.")
+    st.success("✅ 캐시 초기화 완료")
     st.rerun()
 
 # ------------------- 시트 리스트 표시 -------------------
-st.subheader("📋 구글 시트에 존재하는 탭 목록")
+st.subheader("📋 구글 시트 탭(워크시트) 목록")
 
 sheet_list = get_worksheet_list()
 
 if sheet_list:
-    st.success(f"총 {len(sheet_list)}개의 탭을 찾았습니다.")
+    st.success(f"✅ 총 {len(sheet_list)}개의 탭을 찾았습니다.")
     st.write("**탭 이름 목록:**")
-    for name in sheet_list:
-        st.code(name, language=None)
-    
-    # 자동으로 account / stock 후보 추천
-    st.info("아래 입력창에 위 목록 중 정확한 탭 이름을 복사해서 사용하세요.")
+    for i, name in enumerate(sheet_list, 1):
+        st.code(f"{i}. {name}", language=None)
 else:
-    st.error("시트 리스트를 불러올 수 없습니다. 시트 공유 설정을 다시 확인해주세요.")
+    st.warning("탭 목록을 불러오지 못했습니다. 시트 공유 설정을 확인해주세요.")
 
-# ------------------- 특정 시트 불러오기 테스트 -------------------
+# ------------------- 특정 탭 데이터 불러오기 테스트 -------------------
 st.divider()
-st.subheader("📥 특정 탭 데이터 불러오기 테스트")
+st.subheader("📥 원하는 탭 데이터 불러오기")
 
-col_a, col_s = st.columns(2)
+col1, col2 = st.columns(2)
 
-with col_a:
-    acc_name = st.text_input("Account 탭 이름", value="account" if "account" in [s.lower() for s in sheet_list] else sheet_list[0] if sheet_list else "")
-    if st.button("Account 시트 불러오기", use_container_width=True):
-        if acc_name:
-            df_acc = load_gsheet_data(acc_name)   # 아래에 정의된 함수 사용
-            if not df_acc.empty:
-                st.dataframe(df_acc, use_container_width=True)
+with col1:
+    account_tab = st.selectbox("Account 탭 선택", options=sheet_list, index=0 if sheet_list else None)
+    if st.button("📋 Account 시트 불러오기", use_container_width=True) and account_tab:
+        df_acc = load_gsheet_data(account_tab)
+        if not df_acc.empty:
+            st.dataframe(df_acc, use_container_width=True)
 
-with col_s:
-    stock_name = st.text_input("Stock 탭 이름", value="stock" if "stock" in [s.lower() for s in sheet_list] else sheet_list[0] if sheet_list else "")
-    if st.button("Stock 시트 불러오기", use_container_width=True):
-        if stock_name:
-            df_stock = load_gsheet_data(stock_name)
-            if not df_stock.empty:
-                st.dataframe(df_stock, use_container_width=True)
+with col2:
+    stock_tab = st.selectbox("Stock 탭 선택", options=sheet_list, index=1 if len(sheet_list) > 1 else 0)
+    if st.button("📋 Stock 시트 불러오기", use_container_width=True) and stock_tab:
+        df_stock = load_gsheet_data(stock_tab)
+        if not df_stock.empty:
+            st.dataframe(df_stock, use_container_width=True)
 
-# ------------------- 기존 load_gsheet_data 함수 (개선 버전) -------------------
+# ------------------- load_gsheet_data 함수 -------------------
 @st.cache_data(ttl=300)
 def load_gsheet_data(worksheet_name: str):
     if not worksheet_name:
@@ -88,11 +80,4 @@ def load_gsheet_data(worksheet_name: str):
         conn = st.connection("gsheets", type=GSheetsConnection)
         data = conn.read(spreadsheet=SHEET_URL, worksheet=worksheet_name)
         data = data.fillna('').astype(str)
-        st.success(f"✅ '{worksheet_name}' 로드 완료 ({len(data)} 행)")
-        return data
-    except Exception as e:
-        st.error(f"❌ '{worksheet_name}' 불러오기 실패: {str(e)}")
-        return pd.DataFrame()
-
-# 분석 시작 버튼 (나중에 df_acc, df_stock이 제대로 로드되면 활성화)
-run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
+        st.success(f"✅ '{worksheet_name}' 로드
