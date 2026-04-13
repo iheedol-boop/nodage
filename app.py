@@ -37,7 +37,7 @@ with st.expander("💳 1. 계좌 정보 설정", expanded=False):
 
 with st.expander("📈 2. 보유 종목 입력", expanded=False):
     default_stock = {"계좌명": ["퇴직연금","퇴직연금",
-                             "ISA계좌""ISA계좌","ISA계좌""ISA계좌", 
+                             "ISA계좌","ISA계좌","ISA계좌","ISA계좌", 
                              "김시연", "김시연", "김시연", "김시연", 
                              "금현물"],
                      "종목코드": ["379800","484790",
