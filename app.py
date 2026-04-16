@@ -23,7 +23,19 @@ conn.sync()
 # conn.execute("INSERT INTO users ...")
 rows = conn.execute("SELECT * FROM stock").fetchall()
 
-print(rows)
+print("=== stock 테이블 조회 결과 ===")
+if not rows:
+    print("데이터가 없습니다.")
+else:
+    for row in rows:
+        print(row)          # 한 줄씩 출력
+
+# 또는 더 보기 좋게 컬럼 이름과 함께 출력하고 싶다면
+print("\nID | Symbol | Price | Updated At")
+print("-" * 50)
+for row in rows:
+    print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]}")
+    
 conn.close()
 
 
