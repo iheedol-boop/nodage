@@ -4,3 +4,4 @@ finance-datareader          # ← 여기 수정 (하이픈 + 소문자)
 pandas
 plotly
 libsql
+load_dotenv
