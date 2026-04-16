@@ -8,7 +8,7 @@ import libsql
 from dotenv import load_dotenv
 
 load_dotenv()
-
+print("=== stock 테이블 조회 결과 ===")
 conn = libsql.connect(
     "app.db",                       # 로컬 SQLite 파일 경로
     sync_url=os.getenv("TURSO_DATABASE_URL"),
