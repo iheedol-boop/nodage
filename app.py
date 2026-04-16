@@ -29,10 +29,9 @@ conn.sync()                      # ← 중요: remote → local 동기화
 # 데이터 조회 예시
 rows = conn.execute("SELECT * FROM stock").fetchall()
 
-st.title("조회 결과:")
 for row in rows:
-    #print(row)
-    st.title(row)
+    symbol = row[0]           # 첫 번째(그리고 유일한) 컬럼 값 꺼내기
+     st.title(symbol)             # 출력: 069500
 
 # 연결 종료
 conn.close()
