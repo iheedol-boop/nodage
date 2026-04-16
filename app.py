@@ -4,6 +4,34 @@ import pandas as pd
 import plotly.express as px
 import os
 
+import libsql
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# 환경 변수에서 가져오기
+url = os.getenv("TURSO_DATABASE_URL")
+auth_token = os.getenv("TURSO_AUTH_TOKEN")
+
+if not url or not auth_token:
+    raise ValueError("TURSO_DATABASE_URL과 TURSO_AUTH_TOKEN을 설정해주세요.")
+
+# 1. Remote 직접 연결 (간단한 경우 추천)
+conn = libsql.connect(":memory:",  # 또는 "local.db" 같은 파일명
+                      sync_url=url,
+                      auth_token=auth_token)
+
+
+
+# 조회
+result = conn.execute("SELECT * FROM stock")
+for row in result:
+    print(row)   # (1, '홍길동', 'hong@example.com')
+
+conn.close()
+
+
+
 # 파일 저장 경로
 ACC_FILE = "account_data.csv"
 STOCK_FILE = "stock_data.csv"
