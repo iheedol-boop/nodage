@@ -3,6 +3,38 @@ import FinanceDataReader as fdr
 import pandas as pd
 import plotly.express as px
 import os
+import libsql
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수 가져오기
+url = os.getenv("TURSO_DATABASE_URL")
+auth_token = os.getenv("TURSO_AUTH_TOKEN")
+
+if not url or not auth_token:
+    raise ValueError("TURSO_DATABASE_URL 또는 TURSO_AUTH_TOKEN이 .env 파일에 설정되지 않았습니다.")
+
+# Embedded Replica 연결 (가장 많이 사용하는 방식)
+conn = libsql.connect(
+    "app.db",                    # 로컬에 저장될 SQLite 파일 이름
+    sync_url=url,                # Turso 클라우드 URL
+    auth_token=auth_token
+)
+
+# 처음 연결 후 또는 데이터 최신화가 필요할 때 sync 호출
+conn.sync()                      # ← 중요: remote → local 동기화
+
+# 데이터 조회 예시
+rows = conn.execute("SELECT * FROM stock").fetchall()
+
+print("조회 결과:")
+for row in rows:
+    print(row)
+
+# 연결 종료
+conn.close()
 
 
 
