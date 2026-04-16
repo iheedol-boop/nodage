@@ -9,25 +9,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 환경 변수에서 가져오기
-url = os.getenv("TURSO_DATABASE_URL")
-auth_token = os.getenv("TURSO_AUTH_TOKEN")
+conn = libsql.connect(
+    "app.db",                       # 로컬 SQLite 파일 경로
+    sync_url=os.getenv("TURSO_DATABASE_URL"),
+    auth_token=os.getenv("TURSO_AUTH_TOKEN"),
+    # sync_interval=60              # 초 단위로 자동 sync (기본은 수동)
+)
 
-if not url or not auth_token:
-    raise ValueError("TURSO_DATABASE_URL과 TURSO_AUTH_TOKEN을 설정해주세요.")
+# 처음 연결 후 또는 주기적으로 sync 호출
+conn.sync()
 
-# 1. Remote 직접 연결 (간단한 경우 추천)
-conn = libsql.connect(":memory:",  # 또는 "local.db" 같은 파일명
-                      sync_url=url,
-                      auth_token=auth_token)
+# 이후부터는 일반 SQLite처럼 사용
+# conn.execute("INSERT INTO users ...")
+rows = conn.execute("SELECT * FROM stock").fetchall()
 
-
-
-# 조회
-result = conn.execute("SELECT * FROM stock")
-for row in result:
-    print(row)   # (1, '홍길동', 'hong@example.com')
-
+print(rows)
 conn.close()
 
 
