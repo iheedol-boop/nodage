@@ -29,7 +29,7 @@ conn.sync()                      # ← 중요: remote → local 동기화
 # 데이터 조회 예시
 rows = conn.execute("SELECT * FROM stock").fetchall()
 
-print("조회 결과:")
+st.title("조회 결과:")
 for row in rows:
     #print(row)
     st.title(row)
