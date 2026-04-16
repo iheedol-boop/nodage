@@ -30,11 +30,6 @@ else:
     for row in rows:
         print(row)          # 한 줄씩 출력
 
-# 또는 더 보기 좋게 컬럼 이름과 함께 출력하고 싶다면
-print("\nID | Symbol | Price | Updated At")
-print("-" * 50)
-for row in rows:
-    print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]}")
     
 conn.close()
 
