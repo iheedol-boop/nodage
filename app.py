@@ -4,34 +4,6 @@ import pandas as pd
 import plotly.express as px
 import os
 
-import libsql
-from dotenv import load_dotenv
-
-load_dotenv()
-print("=== stock 테이블 조회 결과 ===")
-conn = libsql.connect(
-    "app.db",                       # 로컬 SQLite 파일 경로
-    sync_url=os.getenv("TURSO_DATABASE_URL"),
-    auth_token=os.getenv("TURSO_AUTH_TOKEN"),
-    # sync_interval=60              # 초 단위로 자동 sync (기본은 수동)
-)
-
-# 처음 연결 후 또는 주기적으로 sync 호출
-conn.sync()
-
-# 이후부터는 일반 SQLite처럼 사용
-# conn.execute("INSERT INTO users ...")
-rows = conn.execute("SELECT * FROM stock").fetchall()
-
-print("=== stock 테이블 조회 결과 ===")
-if not rows:
-    print("데이터가 없습니다.")
-else:
-    for row in rows:
-        print(row)          # 한 줄씩 출력
-
-    
-conn.close()
 
 
 
