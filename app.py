@@ -31,7 +31,8 @@ rows = conn.execute("SELECT * FROM stock").fetchall()
 
 print("조회 결과:")
 for row in rows:
-    print(row)
+    #print(row)
+    st.title(row)
 
 # 연결 종료
 conn.close()
