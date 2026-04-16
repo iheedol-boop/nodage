@@ -12,51 +12,125 @@ load_dotenv()
 # 환경 변수 가져오기
 url = os.getenv("TURSO_DATABASE_URL")
 auth_token = os.getenv("TURSO_AUTH_TOKEN")
-
 if not url or not auth_token:
-    raise ValueError("TURSO_DATABASE_URL 또는 TURSO_AUTH_TOKEN이 .env 파일에 설정되지 않았습니다.")
+    st.error("❌ TURSO_DATABASE_URL 또는 TURSO_AUTH_TOKEN이 .env 파일에 설정되지 않았습니다.")
+    st.stop()
 
-# Embedded Replica 연결 (가장 많이 사용하는 방식)
+# Embedded Replica 연결
 conn = libsql.connect(
-    "app.db",                    # 로컬에 저장될 SQLite 파일 이름
-    sync_url=url,                # Turso 클라우드 URL
+    "app.db",           # 로컬 SQLite 파일
+    sync_url=url,
     auth_token=auth_token
 )
+conn.sync()             # remote → local 동기화
 
-# 처음 연결 후 또는 데이터 최신화가 필요할 때 sync 호출
-conn.sync()                      # ← 중요: remote → local 동기화
+# ====================== 테이블 생성 (없으면 자동 생성) ======================
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT UNIQUE NOT NULL,
+        "총 투자원금" INTEGER DEFAULT 0,
+        "예수금" INTEGER DEFAULT 0
+    )
+""")
 
-# 데이터 조회 예시
-rows = conn.execute("SELECT * FROM stock").fetchall()
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS holdings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT NOT NULL,
+        "종목코드" TEXT NOT NULL,
+        "보유수량" INTEGER DEFAULT 0
+    )
+""")
 
-for row in rows:
-    symbol = row[0]           # 첫 번째(그리고 유일한) 컬럼 값 꺼내기
-    st.title(symbol)             # 출력: 069500
+# ====================== 초기 데이터 삽입 (테이블이 비어있으면) ======================
+def initialize_defaults():
+    # accounts 테이블이 비어있으면 기본 데이터 삽입
+    acc_count = conn.execute('SELECT COUNT(*) FROM accounts').fetchone()[0]
+    if acc_count == 0:
+        default_accounts = [
+            ("퇴직연금", 55100000, 12431463),
+            ("ISA계좌", 40167632, 31641286),
+            ("김시연", 20000000, 5834660),
+            ("금현물", 25000000, 15028074),
+        ]
+        conn.executemany(
+            'INSERT INTO accounts ("계좌명", "총 투자원금", "예수금") VALUES (?, ?, ?)',
+            default_accounts
+        )
 
-# 연결 종료
-conn.close()
+    # holdings 테이블이 비어있으면 기본 데이터 삽입
+    hold_count = conn.execute('SELECT COUNT(*) FROM holdings').fetchone()[0]
+    if hold_count == 0:
+        default_holdings = [
+            ("퇴직연금", "379800", 300),
+            ("퇴직연금", "484790", 4382),
+            ("ISA계좌", "069500", 11),
+            ("ISA계좌", "379800", 400),
+            ("ISA계좌", "484790", 1),
+            ("김시연", "069500", 1),
+            ("김시연", "379800", 260),
+            ("김시연", "484790", 1000),
+            ("금현물", "411060", 46),
+        ]
+        conn.executemany(
+            'INSERT INTO holdings ("계좌명", "종목코드", "보유수량") VALUES (?, ?, ?)',
+            default_holdings
+        )
 
+initialize_defaults()
 
+# ====================== DB → DataFrame 로드 ======================
+def load_accounts():
+    rows = conn.execute('SELECT "계좌명", "총 투자원금", "예수금" FROM accounts').fetchall()
+    if not rows:
+        return pd.DataFrame(columns=["계좌명", "총 투자원금", "예수금"])
+    return pd.DataFrame(rows, columns=["계좌명", "총 투자원금", "예수금"])
 
+def load_holdings():
+    rows = conn.execute('SELECT "계좌명", "종목코드", "보유수량" FROM holdings').fetchall()
+    if not rows:
+        return pd.DataFrame(columns=["계좌명", "종목코드", "보유수량"])
+    df = pd.DataFrame(rows, columns=["계좌명", "종목코드", "보유수량"])
+    df['종목코드'] = df['종목코드'].astype(str).str.zfill(6)
+    return df
 
-# 파일 저장 경로
-ACC_FILE = "account_data.csv"
-STOCK_FILE = "stock_data.csv"
+# ====================== DB 저장 함수 ======================
+def save_to_db(edited_acc_df, edited_stock_df):
+    # accounts 저장
+    conn.execute("DELETE FROM accounts")
+    acc_list = [
+        (row["계좌명"], int(row["총 투자원금"]), int(row["예수금"]))
+        for _, row in edited_acc_df.iterrows()
+        if pd.notna(row.get("계좌명"))
+    ]
+    if acc_list:
+        conn.executemany(
+            'INSERT INTO accounts ("계좌명", "총 투자원금", "예수금") VALUES (?, ?, ?)',
+            acc_list
+        )
 
-st.set_page_config(page_title="자산 관리", layout="centered") 
-st.title("💰 자산 관리 매니저")
+    # holdings 저장 (종목코드는 항상 6자리)
+    conn.execute("DELETE FROM holdings")
+    stock_list = [
+        (row["계좌명"], str(row["종목코드"]).zfill(6), int(row["보유수량"]))
+        for _, row in edited_stock_df.iterrows()
+        if pd.notna(row.get("계좌명")) and pd.notna(row.get("종목코드"))
+    ]
+    if stock_list:
+        conn.executemany(
+            'INSERT INTO holdings ("계좌명", "종목코드", "보유수량") VALUES (?, ?, ?)',
+            stock_list
+        )
+    conn.sync()  # 변경사항을 Turso 클라우드에 동기화
+    st.success("✅ 데이터베이스에 저장되었습니다!")
 
-def load_data(file_path, default_data):
-    if os.path.exists(file_path):
-        if "stock" in file_path:
-            return pd.read_csv(file_path, dtype={'종목코드': str})
-        return pd.read_csv(file_path)
-    return pd.DataFrame(default_data)
+# ====================== Streamlit UI ======================
+st.set_page_config(page_title="자산 관리", layout="wide")
+st.title("💰 자산 관리 매니저 (Turso DB 연동)")
 
-def save_data(df, file_path):
-    df.to_csv(file_path, index=False, encoding='utf-8-sig')
-
-@st.cache_data
+# 종목 리스트 캐시
+@st.cache_data(ttl=3600)
 def get_stock_list():
     stocks = fdr.StockListing('KRX')[['Code', 'Name']]
     etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
@@ -64,200 +138,155 @@ def get_stock_list():
 
 all_listing = get_stock_list()
 
-# --- [입력 섹션: 접힌 상태] ---
+# ====================== 입력 섹션 ======================
 with st.expander("💳 1. 계좌 정보 설정", expanded=False):
-    default_acc = {"계좌명": ["퇴직연금", "ISA계좌", "김시연", "금현물"], "총 투자원금": [55100000,40167632,20000000,25000000], "예수금": [12431463,31641286,5834660,15028074]}
-    df_acc = load_data(ACC_FILE, default_acc)
-    edited_acc = st.data_editor(df_acc, num_rows="dynamic", use_container_width=True, key="acc_edit")
+    df_acc = load_accounts()
+    edited_acc = st.data_editor(
+        df_acc,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="acc_editor"
+    )
 
 with st.expander("📈 2. 보유 종목 입력", expanded=False):
-    default_stock = {"계좌명": ["퇴직연금","퇴직연금",
-                             "ISA계좌","ISA계좌","ISA계좌", 
-                             "김시연", "김시연",  "김시연", 
-                             "금현물"],
-                     "종목코드": ["379800", #--KODEX 미국S&P500
-                              "484790",#--KODEX 미국30년국채액티브(H)
-                              
-                              "069500",#--KODEX 200
-                              "379800",#--KODEX 미국S&P500
-                              "484790",#--KODEX 미국30년국채액티브(H)
-                              
-                              "069500",#--KODEX 200
-                              "379800",#--KODEX 미국S&P500
-                              "484790",#--KODEX 미국30년국채액티브(H)
-                              
-                             "411060"#--ACE KRX금현물
-                             ], 
-                     "보유수량": [300,4382,
-                              11,400,1,
-                              1,260,1000,
-                              46]}
-    df_stock = load_data(STOCK_FILE, default_stock)
-    df_stock['종목코드'] = df_stock['종목코드'].astype(str).str.zfill(6)
-    edited_stock = st.data_editor(df_stock, num_rows="dynamic", use_container_width=True, key="stock_edit")
+    df_stock = load_holdings()
+    edited_stock = st.data_editor(          # ← 입력용 (분석 후에 컬럼이 추가되지 않음)
+        df_stock,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="stock_editor"
+    )
+
+# 저장 버튼 (입력 직후에도 바로 저장 가능)
+col_save1, col_save2 = st.columns([1, 4])
+with col_save1:
+    if st.button("💾 DB에 현재 입력 데이터 저장", type="secondary", use_container_width=True):
+        save_to_db(edited_acc, edited_stock)
 
 run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
-
-# --- [분석 및 시각화] ---
+# ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
-        unique_codes = edited_stock["종목코드"].unique()
+        # 분석용 복사본 생성 (원본 edited_stock은 그대로 유지)
+        analysis_stock = edited_stock.copy()
+
+        unique_codes = analysis_stock["종목코드"].unique()
         stock_info_dict = {}
 
         for code in unique_codes:
             try:
-                # 최근 2거래일 데이터를 가져와 현재가와 전일가 추출
-                df = fdr.DataReader(code).tail(2)
+                df = fdr.DataReader(code).tail(3)
+
                 if len(df) >= 2:
-                    current_price = int(df.iloc[-1]['Close'])   # 오늘 종가(현재가)
-                    prev_close = int(df.iloc[-2]['Close'])     # 전일 종가
-                    # 변동률 계산: (현재가 - 전일가) / 전일가 * 100
+                    current_price = int(round(df.iloc[-1]['Close']))
+                    prev_close = int(round(df.iloc[-2]['Close']))
                     change_rate = round(((current_price - prev_close) / prev_close) * 100, 2)
-                else:
-                    current_price = int(df.iloc[-1]['Close']) if not df.empty else 0
+                elif len(df) == 1:
+                    current_price = int(round(df.iloc[-1]['Close']))
                     prev_close = current_price
-                    change_rate = 0
-                
-                # 종목명 찾기
+                    change_rate = 0.0
+                else:
+                    current_price = prev_close = 0
+                    change_rate = 0.0
+
                 name_match = all_listing[all_listing['Code'] == code]['Name']
                 name = name_match.values[0] if not name_match.empty else "미등록"
-                
-                if code=='411060' :
-                    current_price=current_price*7.15
-                    prev_close=prev_close*7.15
 
+                # 금현물 특별 처리 제거 (정상 가격 사용)
                 stock_info_dict[code] = {
                     "종목명": name,
                     "현재가": current_price,
                     "전일가": prev_close,
                     "변동률(%)": change_rate
                 }
-            except:
-                stock_info_dict[code] = {"종목명": "코드확인", "현재가": 0, "전일가": 0, "변동률(%)": 0}
+            except Exception as e:
+                st.warning(f"{code} 데이터 로드 실패: {e}")
+                stock_info_dict[code] = {"종목명": "오류", "현재가": 0, "전일가": 0, "변동률(%)": 0}
 
-        # 데이터프레임에 매핑
-        edited_stock["종목명"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["종목명"])
-        edited_stock["현재가"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["현재가"])
-        edited_stock["전일가"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["전일가"])
-        edited_stock["변동률(%)"] = edited_stock["종목코드"].map(lambda x: stock_info_dict[x]["변동률(%)"])
-        edited_stock["평가금액"] = edited_stock["보유수량"] * edited_stock["현재가"]
+        # 분석용 데이터프레임에 정보 매핑
+        analysis_stock["종목명"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
+        analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
+        analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
+        analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
+        analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
 
-
-
-        
-        # --- [종목별 변동 현황 출력] ---
+        # ====================== 종목별 실시간 변동 ======================
         st.subheader("📊 종목별 실시간 변동 (통합)")
-        
-        # 1. 종목코드별로 그룹화하여 수량과 평가금액을 합산 (중복 제거)
-        # 현재가, 전일가, 변동률은 동일하므로 first()를 사용합니다.
-        unique_stock_display = edited_stock.groupby("종목코드").agg({
+        unique_stock_display = analysis_stock.groupby("종목코드").agg({
             '종목명': 'first',
             '현재가': 'first',
             '전일가': 'first',
             '변동률(%)': 'first',
             '보유수량': 'sum',
             '평가금액': 'sum'
-        }).reset_index()
+        }).reset_index().sort_values(by="변동률(%)", ascending=False)
 
-        # 2. 변동률 순으로 정렬
-        unique_stock_display = unique_stock_display.sort_values(by="변동률(%)", ascending=False)
-
-        # 3. 화면 출력 (4컬럼 레이아웃)
         stock_cols = st.columns(4)
-        for idx, (i, row) in enumerate(unique_stock_display.iterrows()):
+        for idx, row in unique_stock_display.iterrows():
             with stock_cols[idx % 4]:
                 change_amt = int(row['현재가'] - row['전일가'])
                 st.metric(
-                    label=row['종목명'], 
-                    value=f"{int(row['현재가']):,}원", 
+                    label=row['종목명'],
+                    value=f"{int(row['현재가']):,}원",
                     delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
                 )
 
-
-
-               # --- [계좌별 자산 평가 및 비중 분석 (계층적 수정)] ---
+        # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
         st.subheader("🏦 계좌 및 종목별 계층 분석")
 
-        # 1. 데이터 정리: 계좌별 합계 및 수익률 계산
-        acc_stock_sum = edited_stock.groupby("계좌명")["평가금액"].sum().reset_index()
+        acc_stock_sum = analysis_stock.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(edited_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
-        
-        # 수익률 계산 (분모 0 체크)
+
         final_df["수익률(%)"] = final_df.apply(
             lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
         )
 
-        # 2. 시각화 레이아웃 (상단 지표 / 하단 트리맵)
         col1, col2 = st.columns([1, 2])
-
         with col1:
-            # 계좌별 요약 지표 (수직 나열)
             for _, row in final_df.sort_values("총자산", ascending=False).iterrows():
                 st.metric(
-                    label=f"📂 {row['계좌명']}", 
-                    value=f"{int(row['총자산']):,}원", 
+                    label=f"📂 {row['계좌명']}",
+                    value=f"{int(row['총자산']):,}원",
                     delta=f"{row['수익률(%)']}%"
                 )
 
         with col2:
-            # 계층적 트리맵 데이터 구성 (계좌 내 예수금도 포함시키기 위해 데이터 재구성)
-            # 1) 주식 데이터
-            tree_data = edited_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
-            # 2) 예수금 데이터 추가 (각 계좌별로)
+            tree_data = analysis_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
             cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
             cash_data['항목'] = "💰 예수금"
-            
             hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
-            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0] # 0원인 항목 제외
+            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
 
-            # 트리맵 시각화
             fig_tree = px.treemap(
-                hierarchical_df, 
-                path=[px.Constant("전체 자산"), '계좌명', '항목'], # 계층 구조: 전체 > 계좌 > 종목/예수금
+                hierarchical_df,
+                path=[px.Constant("전체 자산"), '계좌명', '항목'],
                 values='금액',
                 color='계좌명',
                 color_discrete_sequence=px.colors.qualitative.Pastel,
-                title="📊 계층적 자산 구성 (계좌 > 종목)"
+                title="📊 계층적 자산 구성"
             )
             fig_tree.update_traces(textinfo="label+value+percent parent")
-            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=450)
+            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
             st.plotly_chart(fig_tree, use_container_width=True)
 
-
-
-         # --- [3. 종목별 비중 상세 (상단과 동일한 2컬럼 레이아웃)] ---
+        # ====================== 종목별 Sunburst ======================
         st.divider()
-        c3, c4 = st.columns(2) # c1, c2와 동일하게 1:1 비율로 설정
-
+        c3, c4 = st.columns(2)
         with c3:
-            # Sunburst 차트 배치
             fig_sun = px.sunburst(
-                edited_stock, 
-                path=['종목명', '계좌명'], 
-                values='평가금액', 
+                analysis_stock,
+                path=['종목명', '계좌명'],
+                values='평가금액',
                 title='🔍 종목별 상세 비중',
-                color='종목명', 
+                color='종목명',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
-            fig_sun.update_traces(
-                textinfo="label+percent root", 
-                insidetextorientation='radial'
-            )
-            # 여백 및 높이 최적화
-            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=450)
+            fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
+            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
             st.plotly_chart(fig_sun, use_container_width=True)
 
-        with c4:
-            # 이 영역은 비워둡니다 (레이아웃 대칭 유지)
-            pass
-
-       
-
-
-
-       
-
-
+# 연결 종료
+conn.close()
