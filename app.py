@@ -32,7 +32,6 @@ rows = conn.execute("SELECT * FROM stock").fetchall()
 for row in rows:
     symbol = row[0]           # 첫 번째(그리고 유일한) 컬럼 값 꺼내기
      st.title(symbol)             # 출력: 069500
-
 # 연결 종료
 conn.close()
 
