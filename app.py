@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 st.markdown("""
     <style>
     /* 서브해더(타이틀) 크기 조절 */
-    [data-testid="subheader"] {
+    [data-testid="stSubheader"] {
         font-size: 1.1rem !important;
         font-weight: 700;
     }
