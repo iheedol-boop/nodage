@@ -107,6 +107,14 @@ if run_analysis:
                 if len(df) >= 2:
                     current_price = int(round(df.iloc[-1]['Close']))
                     prev_close = int(round(df.iloc[-2]['Close']))
+                    
+                    # 금 ETF 시세로 금현물 가격 조정
+                     if code =="411060":
+                        current_price = current_price*7.15
+                        prev_close = prev_close*7.15
+                    else:
+                        current_price = current_price
+                        prev_close = prev_close
                     change_rate = round(((current_price - prev_close) / prev_close) * 100, 2)
                 elif len(df) == 1:
                     current_price = int(round(df.iloc[-1]['Close']))
@@ -119,11 +127,6 @@ if run_analysis:
                 name_match = all_listing[all_listing['Code'] == code]['Name']
                 name = name_match.values[0] if not name_match.empty else "미등록"
 
-                if code =="411060":
-                    current_price = current_price*7.15
-                else:
-                    current_price = current_price
-                # 금현물 특별 처리 제거 (정상 가격 사용)
                 stock_info_dict[code] = {
                     "종목명": name,
                     "현재가": current_price,
