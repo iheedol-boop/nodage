@@ -189,7 +189,7 @@ if run_analysis:
             lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
         )
 
-        col1, col2 = st.columns([1, 2])
+        col1, col2 = st.columns(2)
         with col1:
             for _, row in final_df.sort_values("총자산", ascending=False).iterrows():
                 st.metric(
@@ -232,14 +232,8 @@ if run_analysis:
             fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
             fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
             st.plotly_chart(fig_sun, use_container_width=True)
-         with c4:
-            tree_data = analysis_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
-            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
-            cash_data['항목'] = "💰 예수금"
-            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
-            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
-             
-            fig_sun = px.sunburst(
+        with c4:           
+            fig_sun2 = px.sunburst(
                 hierarchical_df,
                 path=['계좌명', '종목명'],
                 values='평가금액',
@@ -247,8 +241,9 @@ if run_analysis:
                 color='종목명',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
-            fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
-            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun, use_container_width=True)
+            fig_sun2.update_traces(textinfo="label+percent root", insidetextorientation='radial')
+            fig_sun2.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+            st.plotly_chart(fig_sun2, use_container_width=True)
+            
 # 연결 종료
 conn.close()
