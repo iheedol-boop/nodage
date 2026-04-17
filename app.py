@@ -135,7 +135,10 @@ if run_analysis:
         analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
-        analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
+        if analysis_stock["종목코드"]=="411060" :
+            analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]*7.15
+        else :
+            analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
 
         # ====================== 종목별 실시간 변동 ======================
         st.subheader("📊 종목별 실시간 변동 (통합)")
