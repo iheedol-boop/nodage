@@ -120,6 +120,10 @@ if run_analysis:
                 name_match = all_listing[all_listing['Code'] == code]['Name']
                 name = name_match.values[0] if not name_match.empty else "미등록"
 
+                if code =="411060":
+                    current_price = current_price*7.15
+                else:
+                    current_price = current_price
                 # 금현물 특별 처리 제거 (정상 가격 사용)
                 stock_info_dict[code] = {
                     "종목명": name,
@@ -136,13 +140,8 @@ if run_analysis:
         analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
-
-        # 평가금액 계산 (종목코드가 411060이면 7.15를 추가로 곱함)
-        analysis_stock["평가금액"] = np.where(
-            analysis_stock["종목코드"] == "411060",
-            analysis_stock["보유수량"] * analysis_stock["현재가"] * 7.15, # 참일 때
-            analysis_stock["보유수량"] * analysis_stock["현재가"]        # 거짓일 때
-        )
+        analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
+       
 
 
         # ====================== 종목별 실시간 변동 ======================
