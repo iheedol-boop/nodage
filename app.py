@@ -43,43 +43,6 @@ conn.execute("""
     )
 """)
 
-# ====================== 초기 데이터 삽입 (테이블이 비어있으면) ======================
-def initialize_defaults():
-    # accounts 테이블이 비어있으면 기본 데이터 삽입
-    acc_count = conn.execute('SELECT COUNT(*) FROM accounts').fetchone()[0]
-    if acc_count == 0:
-        default_accounts = [
-            ("퇴직연금", 55100000, 12431463),
-            ("ISA계좌", 40167632, 31641286),
-            ("김시연", 20000000, 5834660),
-            ("금현물", 25000000, 15028074),
-        ]
-        conn.executemany(
-            'INSERT INTO accounts ("계좌명", "총 투자원금", "예수금") VALUES (?, ?, ?)',
-            default_accounts
-        )
-
-    # holdings 테이블이 비어있으면 기본 데이터 삽입
-    hold_count = conn.execute('SELECT COUNT(*) FROM holdings').fetchone()[0]
-    if hold_count == 0:
-        default_holdings = [
-            ("퇴직연금", "379800", 300),
-            ("퇴직연금", "484790", 4382),
-            ("ISA계좌", "069500", 11),
-            ("ISA계좌", "379800", 400),
-            ("ISA계좌", "484790", 1),
-            ("김시연", "069500", 1),
-            ("김시연", "379800", 260),
-            ("김시연", "484790", 1000),
-            ("금현물", "411060", 46),
-        ]
-        conn.executemany(
-            'INSERT INTO holdings ("계좌명", "종목코드", "보유수량") VALUES (?, ?, ?)',
-            default_holdings
-        )
-
-initialize_defaults()
-
 # ====================== DB → DataFrame 로드 ======================
 def load_accounts():
     rows = conn.execute('SELECT "계좌명", "총 투자원금", "예수금" FROM accounts').fetchall()
@@ -95,35 +58,6 @@ def load_holdings():
     df['종목코드'] = df['종목코드'].astype(str).str.zfill(6)
     return df
 
-# ====================== DB 저장 함수 ======================
-def save_to_db(edited_acc_df, edited_stock_df):
-    # accounts 저장
-    conn.execute("DELETE FROM accounts")
-    acc_list = [
-        (row["계좌명"], int(row["총 투자원금"]), int(row["예수금"]))
-        for _, row in edited_acc_df.iterrows()
-        if pd.notna(row.get("계좌명"))
-    ]
-    if acc_list:
-        conn.executemany(
-            'INSERT INTO accounts ("계좌명", "총 투자원금", "예수금") VALUES (?, ?, ?)',
-            acc_list
-        )
-
-    # holdings 저장 (종목코드는 항상 6자리)
-    conn.execute("DELETE FROM holdings")
-    stock_list = [
-        (row["계좌명"], str(row["종목코드"]).zfill(6), int(row["보유수량"]))
-        for _, row in edited_stock_df.iterrows()
-        if pd.notna(row.get("계좌명")) and pd.notna(row.get("종목코드"))
-    ]
-    if stock_list:
-        conn.executemany(
-            'INSERT INTO holdings ("계좌명", "종목코드", "보유수량") VALUES (?, ?, ?)',
-            stock_list
-        )
-    conn.sync()  # 변경사항을 Turso 클라우드에 동기화
-    st.success("✅ 데이터베이스에 저장되었습니다!")
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
@@ -156,12 +90,6 @@ with st.expander("📈 2. 보유 종목 입력", expanded=False):
         use_container_width=True,
         key="stock_editor"
     )
-
-# 저장 버튼 (입력 직후에도 바로 저장 가능)
-col_save1, col_save2 = st.columns([1, 4])
-with col_save1:
-    if st.button("💾 DB에 현재 입력 데이터 저장", type="secondary", use_container_width=True):
-        save_to_db(edited_acc, edited_stock)
 
 run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
