@@ -8,10 +8,6 @@ from dotenv import load_dotenv
 
 st.markdown("""
     <style>
-    /* "계좌"라는 텍스트를 포함한 서브헤더만 찾아 크기 조절 */
-    [data-testid="stSubheader"]:has(div:contains("계좌")) {
-        font-size: 8px !important;
-    }
     /* 라벨(종목명) 크기 조절 */
     [data-testid="stMetricLabel"] {
         font-size: 0.8rem !important;
