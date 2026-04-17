@@ -160,7 +160,7 @@ if run_analysis:
             '변동률(%)': 'first',
             '보유수량': 'sum',
             '평가금액': 'sum'
-        }).reset_index().sort_values(by="변동률(%)", ascending=False)
+        }).reset_index().sort_values(by="변동률(%)", ascending=True)
 
         stock_cols = st.columns(4)
         for idx, row in unique_stock_display.iterrows():
