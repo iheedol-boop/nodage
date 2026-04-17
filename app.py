@@ -23,6 +23,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+
 # .env 파일 로드
 load_dotenv()
 
@@ -170,41 +171,29 @@ if run_analysis:
 
         # ====================== 종목별 실시간 변동 ======================
         st.subheader("📊 종목별 실시간 변동 (통합)")
-        # 1. 상승률 기준 내림차순 정렬 및 인덱스 재부여
+        # 1. 상승률 기준 내림차순 정렬 (이미 잘 작성하셨습니다)
         unique_stock_display = analysis_stock.groupby("종목코드").agg({
             '종목명': 'first',
             '현재가': 'first',
             '전일가': 'first',
             '변동률(%)': 'first',
-            '보유수량': 'sum'
-        }).reset_index().sort_values(by="변동률(%)", ascending=False).reset_index(drop=True)
+            '보유수량': 'sum',
+            '평가금액': 'sum'
+        }).reset_index().sort_values(by="변동률(%)", ascending=False)
         
-        # 2. 화면 출력 (아이폰 14 Plus 등 모바일 대응)
-        # enumerate를 사용하여 2개씩 묶어서 처리합니다.
-        for i in range(0, len(unique_stock_display), 2):
-            cols = st.columns(2)  # 4개에서 2개로 변경
-            
-            # 첫 번째 열 (왼쪽)
-            with cols[0]:
-                row = unique_stock_display.iloc[i]
+        # 2. 정렬된 순서대로 인덱스를 재부여 (idx % 4 계산을 위해 필수)
+        unique_stock_display = unique_stock_display.reset_index(drop=True)
+        
+        # 3. 화면 출력
+        stock_cols = st.columns(4)
+        for idx, row in unique_stock_display.iterrows():
+            with stock_cols[idx % 4]:
                 change_amt = int(row['현재가'] - row['전일가'])
                 st.metric(
                     label=row['종목명'],
                     value=f"{int(row['현재가']):,}원",
                     delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
                 )
-            
-            # 두 번째 열 (오른쪽) - 데이터가 홀수개일 경우를 대비
-            if i + 1 < len(unique_stock_display):
-                with cols[1]:
-                    row = unique_stock_display.iloc[i+1]
-                    change_amt = int(row['현재가'] - row['전일가'])
-                    st.metric(
-                        label=row['종목명'],
-                        value=f"{int(row['현재가']):,}원",
-                        delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
-                    )
-
 
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
