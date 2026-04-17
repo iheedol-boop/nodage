@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 st.markdown("""
     <style>
     /* 서브해더(타이틀) 크기 조절 */
-    [data-testid="stSubheader"] h3 {
-        font-size: 1.1rem !important;
+     .st-emotion-cache-10trblm { 
+        font-size: 18px !important;
     }
     /* 라벨(종목명) 크기 조절 */
     [data-testid="stMetricLabel"] {
