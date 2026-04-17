@@ -5,7 +5,6 @@ import plotly.express as px
 import os
 import libsql
 from dotenv import load_dotenv
-import numpy as np
 
 # .env 파일 로드
 load_dotenv()
