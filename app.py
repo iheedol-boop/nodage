@@ -104,22 +104,27 @@ if run_analysis:
             try:
                 df = fdr.DataReader(code).tail(3)
 
+                GOLD_ETF_CODE = "411060"
+                GOLD_MULTIPLIER = 7.15
+                
                 if len(df) >= 2:
                     current_price = int(round(df.iloc[-1]['Close']))
                     prev_close = int(round(df.iloc[-2]['Close']))
                     
-                    # 금 ETF 시세로 금현물 가격 조정
-                     if code =="411060":
-                        current_price = current_price*7.15
-                        prev_close = prev_close*7.15
-                    else:
-                        current_price = current_price
-                        prev_close = prev_close
-                    change_rate = round(((current_price - prev_close) / prev_close) * 100, 2)
+                    # 금 ETF(ACE KRX금현물) 시세 조정
+                    if code == GOLD_ETF_CODE:
+                        current_price = int(current_price * GOLD_MULTIPLIER)
+                        prev_close = int(prev_close * GOLD_MULTIPLIER)
+                    
+                    # 등락률 계산 (분모가 0인 경우 대비)
+                    change_rate = round(((current_price - prev_close) / prev_close) * 100, 2) if prev_close != 0 else 0.0
+                
                 elif len(df) == 1:
-                    current_price = int(round(df.iloc[-1]['Close']))
-                    prev_close = current_price
+                    current_price = prev_close = int(round(df.iloc[-1]['Close']))
+                    if code == GOLD_ETF_CODE:
+                        current_price = prev_close = int(current_price * GOLD_MULTIPLIER)
                     change_rate = 0.0
+                
                 else:
                     current_price = prev_close = 0
                     change_rate = 0.0
