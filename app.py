@@ -5,6 +5,7 @@ import plotly.express as px
 import os
 import libsql
 from dotenv import load_dotenv
+import numpy as np
 
 # .env 파일 로드
 load_dotenv()
@@ -136,13 +137,13 @@ if run_analysis:
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
 
-       def calculate_amount(row):
-            base_amount = row["보유수량"] * row["현재가"]
-            if row["종목코드"] == "411060":
-                return base_amount * 7.15
-            return base_amount
-        
-        analysis_stock["평가금액"] = analysis_stock.apply(calculate_amount, axis=1)
+        # 평가금액 계산 (종목코드가 411060이면 7.15를 추가로 곱함)
+        analysis_stock["평가금액"] = np.where(
+            analysis_stock["종목코드"] == "411060",
+            analysis_stock["보유수량"] * analysis_stock["현재가"] * 7.15, # 참일 때
+            analysis_stock["보유수량"] * analysis_stock["현재가"]        # 거짓일 때
+        )
+
 
         # ====================== 종목별 실시간 변동 ======================
         st.subheader("📊 종목별 실시간 변동 (통합)")
