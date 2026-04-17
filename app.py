@@ -73,7 +73,7 @@ def get_stock_list():
 all_listing = get_stock_list()
 
 # ====================== 조회 섹션 ======================
-with st.expander("💳 1. 계좌 정보 조회", expanded=True): # 보기 편하도록 기본 펼침
+with st.expander("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
     df_acc = load_accounts()
     st.dataframe(
         df_acc,
@@ -81,7 +81,7 @@ with st.expander("💳 1. 계좌 정보 조회", expanded=True): # 보기 편하
         hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
     )
 
-with st.expander("📈 2. 보유 종목 조회", expanded=True):
+with st.expander("📈 2. 보유 종목 조회", expanded=False):
     df_stock = load_holdings()
     st.dataframe(
         df_stock,
@@ -135,7 +135,8 @@ if run_analysis:
         analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
-        if analysis_stock["종목코드"]=="411060" :
+        
+        if analysis_stock["종목코드"] == "411060" :
             analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]*7.15
         else :
             analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
