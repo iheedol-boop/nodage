@@ -94,7 +94,7 @@ run_analysis = st.button("🚀 분석 시작", type="primary", use_container_wid
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
-        # 분석용 복사본 생성 (원본 edited_stock은 그대로 유지)
+        # 분석용 복사본 생성 
         analysis_stock = df_stock.copy()
 
         unique_codes = analysis_stock["종목코드"].unique()
@@ -163,7 +163,7 @@ if run_analysis:
         st.subheader("🏦 계좌 및 종목별 계층 분석")
 
         acc_stock_sum = analysis_stock.groupby("계좌명")["평가금액"].sum().reset_index()
-        final_df = pd.merge(edited_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
+        final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
 
         final_df["수익률(%)"] = final_df.apply(
