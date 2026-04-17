@@ -95,7 +95,7 @@ run_analysis = st.button("🚀 분석 시작", type="primary", use_container_wid
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
         # 분석용 복사본 생성 (원본 edited_stock은 그대로 유지)
-        analysis_stock = edited_stock.copy()
+        analysis_stock = df_stock.copy()
 
         unique_codes = analysis_stock["종목코드"].unique()
         stock_info_dict = {}
