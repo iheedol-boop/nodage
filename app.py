@@ -222,11 +222,11 @@ if run_analysis:
         c3, c4 = st.columns(2)
         with c3:
             fig_sun = px.sunburst(
-                analysis_stock,
-                path=['종목명', '계좌명'],
-                values='평가금액',
-                title='🔍 종목별 상세 비중',
-                color='종목명',
+                hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                path=['항목', '계좌명'],
+                values='금액',
+                title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
+                color='계좌명',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
             fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
