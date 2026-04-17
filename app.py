@@ -226,7 +226,7 @@ if run_analysis:
                 path=['항목', '계좌명'],
                 values='금액',
                 title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
-                color='계좌명',
+                color='항목',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
             fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
@@ -238,7 +238,7 @@ if run_analysis:
                 path=['계좌명', '항목'],
                 values='금액',
                 title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
-                color='계좌명',
+                color='항목',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
             fig_sun_acc.update_traces(textinfo="label+percent parent")
