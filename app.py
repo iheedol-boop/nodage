@@ -233,22 +233,17 @@ if run_analysis:
             fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
             st.plotly_chart(fig_sun, use_container_width=True)
         with c4:  
-            tree_data = analysis_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
-            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
-            cash_data['항목'] = "💰 예수금"
-            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
-            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
-            fig_sun = px.sunburst(
-                hierarchical_df,
-                path=['계좌명', '종목명'],
-                values='평가금액',
-                title='🔍 종목별 상세 비중',
-                color='종목명',
+            fig_sun_acc = px.sunburst(
+                hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                path=['계좌명', '항목'],
+                values='금액',
+                title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
+                color='계좌명',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
-            fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
-            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun, use_container_width=True)
+            fig_sun_acc.update_traces(textinfo="label+percent parent")
+            fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+            st.plotly_chart(fig_sun_acc, use_container_width=True)
             
 # 연결 종료
 conn.close()
