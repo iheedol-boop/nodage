@@ -6,6 +6,24 @@ import os
 import libsql
 from dotenv import load_dotenv
 
+st.markdown("""
+    <style>
+    /* 라벨(종목명) 크기 조절 */
+    [data-testid="stMetricLabel"] {
+        font-size: 0.8rem !important;
+    }
+    /* 값(가격) 크기 조절 */
+    [data-testid="stMetricValue"] {
+        font-size: 1.2rem !important;
+    }
+    /* 변동폭(delta) 크기 조절 */
+    [data-testid="stMetricDelta"] {
+        font-size: 0.7rem !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 # .env 파일 로드
 load_dotenv()
 
