@@ -153,6 +153,7 @@ if run_analysis:
 
         # ====================== 종목별 실시간 변동 ======================
         st.subheader("📊 종목별 실시간 변동 (통합)")
+        # 1. 상승률 기준 내림차순 정렬 (이미 잘 작성하셨습니다)
         unique_stock_display = analysis_stock.groupby("종목코드").agg({
             '종목명': 'first',
             '현재가': 'first',
@@ -160,8 +161,12 @@ if run_analysis:
             '변동률(%)': 'first',
             '보유수량': 'sum',
             '평가금액': 'sum'
-        }).reset_index().sort_values(by="변동률(%)", ascending=True)
-
+        }).reset_index().sort_values(by="변동률(%)", ascending=False)
+        
+        # 2. 정렬된 순서대로 인덱스를 재부여 (idx % 4 계산을 위해 필수)
+        unique_stock_display = unique_stock_display.reset_index(drop=True)
+        
+        # 3. 화면 출력
         stock_cols = st.columns(4)
         for idx, row in unique_stock_display.iterrows():
             with stock_cols[idx % 4]:
