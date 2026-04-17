@@ -10,7 +10,7 @@ st.markdown("""
     <style>
     /* 서브해더(타이틀) 크기 조절 */
     [data-testid="stSubheader"] {
-        font-size: 1.1rem !important;
+        font-size: 0.5rem !important;
         font-weight: 700;
     }
     /* 라벨(종목명) 크기 조절 */
