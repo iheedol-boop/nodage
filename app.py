@@ -72,23 +72,21 @@ def get_stock_list():
 
 all_listing = get_stock_list()
 
-# ====================== 입력 섹션 ======================
-with st.expander("💳 1. 계좌 정보 설정", expanded=False):
+# ====================== 조회 섹션 ======================
+with st.expander("💳 1. 계좌 정보 조회", expanded=True): # 보기 편하도록 기본 펼침
     df_acc = load_accounts()
-    edited_acc = st.data_editor(
+    st.dataframe(
         df_acc,
-        num_rows="dynamic",
         use_container_width=True,
-        key="acc_editor"
+        hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
     )
 
-with st.expander("📈 2. 보유 종목 입력", expanded=False):
+with st.expander("📈 2. 보유 종목 조회", expanded=True):
     df_stock = load_holdings()
-    edited_stock = st.data_editor(          # ← 입력용 (분석 후에 컬럼이 추가되지 않음)
+    st.dataframe(
         df_stock,
-        num_rows="dynamic",
         use_container_width=True,
-        key="stock_editor"
+        hide_index=True
     )
 
 run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
