@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 
 st.markdown("""
     <style>
-    /* 서브해더(타이틀) 크기 조절 */
-     .st-emotion-cache-10trblm { 
-        font-size: 18px !important;
+    /* "계좌"라는 텍스트를 포함한 서브헤더만 찾아 크기 조절 */
+    [data-testid="stSubheader"]:has(div:contains("계좌")) {
+        font-size: 15px !important;
     }
     /* 라벨(종목명) 크기 조절 */
     [data-testid="stMetricLabel"] {
