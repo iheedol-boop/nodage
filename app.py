@@ -1,24 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
 
+# 메인 윈도우 및 노트북(탭) 생성
 root = tk.Tk()
-root.title("Tkinter Tab 예제")
-root.geometry("400x300")
-
-# 탭을 관리하는 Notebook 생성
 notebook = ttk.Notebook(root)
 notebook.pack(expand=True, fill="both")
 
-# 첫 번째 탭 화면 구성
-tab1 = ttk.Frame(notebook)
-notebook.add(tab1, text="첫 번째 탭")
-label1 = tk.Label(tab1, text="여기는 1번 화면입니다.")
-label1.pack(pady=20)
+# 탭 프레임 생성 및 추가
+frame1 = tk.Frame(notebook)
+notebook.add(frame1, text="탭 1")
 
-# 두 번째 탭 화면 구성
-tab2 = ttk.Frame(notebook)
-notebook.add(tab2, text="두 번째 탭")
-label2 = tk.Label(tab2, text="여기는 2번 화면입니다.")
-label2.pack(pady=20)
+# 탭 내용 구성
+tk.Label(frame1, text="첫 번째 화면").pack()
 
 root.mainloop()
