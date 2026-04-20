@@ -6,7 +6,32 @@ import os
 import libsql
 from dotenv import load_dotenv
 
-st.markdown("""
+# 1. 화면 전환을 위한 초기 상태 설정
+if 'page' not in st.session_state:
+    st.session_state.page = 'main'  # 처음 시작은 'main' 화면
+
+# --- 화면 이동 함수 정의 ---
+def go_to_main():
+    st.session_state.page = 'main'
+
+def go_to_app():
+    st.session_state.page = 'app'
+
+# --- 2. 메인 화면 구성 ---
+def main_page():
+    st.title("🏠 메인 페이지")
+    st.write("반갑습니다! 아래 버튼을 누르면 기존 프로그램으로 이동합니다.")
+    
+    if st.button("기존 프로그램 시작하기"):
+        go_to_app()
+        st.rerun()  # 화면을 즉시 새로고침하여 상태 반영
+
+# --- 3. 기존 프로그램 화면 (기존 코드를 이 함수 안에 넣으세요) ---
+def existing_app_page():
+    st.title("🚀 기존 프로그램 화면")
+    
+
+    st.markdown("""
     <style>
     /* 라벨(종목명) 크기 조절 */
     [data-testid="stMetricLabel"] {
@@ -263,5 +288,21 @@ if run_analysis:
             fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
             st.plotly_chart(fig_sun_acc, use_container_width=True)
             
-# 연결 종료
-conn.close()
+    # 연결 종료
+    conn.close()
+    
+    st.info("기존 기능들이 여기서 작동합니다.")
+    
+    # 다시 메인으로 돌아가고 싶을 때를 위한 버튼
+    if st.button("메인으로 돌아가기"):
+        go_to_main()
+        st.rerun()
+
+# --- 4. 현재 상태(page)에 따라 어떤 화면을 보여줄지 결정 ---
+if st.session_state.page == 'main':
+    main_page()
+elif st.session_state.page == 'app':
+    existing_app_page()
+
+
+
