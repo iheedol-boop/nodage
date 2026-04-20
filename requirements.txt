@@ -5,4 +5,4 @@ pandas
 plotly
 libsql
 load_dotenv
-tkinter 
+flet 
