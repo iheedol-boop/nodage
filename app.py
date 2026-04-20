@@ -1,16 +1,14 @@
-import tkinter as tk
-from tkinter import ttk
+import flet as ft
 
-# 메인 윈도우 및 노트북(탭) 생성
-root = tk.Tk()
-notebook = ttk.Notebook(root)
-notebook.pack(expand=True, fill="both")
+# Flet을 활용한 간단한 이름 입력 앱 샘플 코드
+def main(page: ft.Page):
+    page.title = "Flet 앱"
+    
+    def button_clicked(e):
+        page.add(ft.Text(f"안녕하세요, {txt_name.value}님!"))
+        page.update()
 
-# 탭 프레임 생성 및 추가
-frame1 = tk.Frame(notebook)
-notebook.add(frame1, text="탭 1")
+    txt_name = ft.TextField(label="이름")
+    page.add(txt_name, ft.ElevatedButton("인사", on_click=button_clicked))
 
-# 탭 내용 구성
-tk.Label(frame1, text="첫 번째 화면").pack()
-
-root.mainloop()
+ft.app(target=main)
