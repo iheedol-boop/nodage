@@ -5,6 +5,7 @@ import plotly.express as px
 import os
 import libsql
 from dotenv import load_dotenv
+from stock import get_stock_list
 
 
 # 페이지 설정
@@ -78,11 +79,7 @@ with tab2:
     st.header("Analysis")
     # 종목 리스트 캐시
     @st.cache_data(ttl=3600)
-    def get_stock_list():
-        stocks = fdr.StockListing('KRX')[['Code', 'Name']]
-        etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
-        return pd.concat([stocks, etfs], ignore_index=True)
-    
+  
     all_listing = get_stock_list()
     
     # ====================== 조회 섹션 ======================
