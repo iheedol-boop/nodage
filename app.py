@@ -52,29 +52,16 @@ conn.execute("""
     )
 """)
 
-# ====================== DB → DataFrame 로드 ======================
-def load_accounts():
-    rows = conn.execute('SELECT "계좌명", "총 투자원금", "예수금" FROM accounts').fetchall()
-    if not rows:
-        return pd.DataFrame(columns=["계좌명", "총 투자원금", "예수금"])
-    return pd.DataFrame(rows, columns=["계좌명", "총 투자원금", "예수금"])
 
-def load_holdings():
-    rows = conn.execute('SELECT "계좌명", "종목코드", "보유수량" FROM holdings').fetchall()
-    if not rows:
-        return pd.DataFrame(columns=["계좌명", "종목코드", "보유수량"])
-    df = pd.DataFrame(rows, columns=["계좌명", "종목코드", "보유수량"])
-    df['종목코드'] = df['종목코드'].astype(str).str.zfill(6)
-    return df
-
-
-# 상단 탭 생성
+# ====================== 상단 탭 생성 ======================
 tab1, tab2, tab3 = st.tabs(["홈", "분석 결과", "설정"])
 
+# ====================== tab1 ======================
 with tab1:
     st.header("Home")
     st.write("여기는 메인 탭입니다.")
 
+# ====================== tab2 ======================
 with tab2:
     st.header("Analysis")
     # 종목 리스트 캐시
@@ -103,7 +90,8 @@ with tab2:
 
     # 다른 파일의 함수를 불러와서 넣을 수도 있습니다.
     st.info("차트나 데이터를 여기에 띄웁니다.")
-
+    
+# ====================== tab3 ======================
 with tab3:
     st.header("Settings")
     st.write("환경 설정 화면입니다.")
