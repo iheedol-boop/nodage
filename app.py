@@ -69,6 +69,34 @@ with tab1:
 
 with tab2:
     st.header("Analysis")
+    # 종목 리스트 캐시
+    @st.cache_data(ttl=3600)
+    def get_stock_list():
+        stocks = fdr.StockListing('KRX')[['Code', 'Name']]
+        etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
+        return pd.concat([stocks, etfs], ignore_index=True)
+    
+    all_listing = get_stock_list()
+    
+    # ====================== 조회 섹션 ======================
+    with st.expander("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
+        df_acc = load_accounts()
+        st.dataframe(
+            df_acc,
+            use_container_width=True,
+            hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
+        )
+    
+    with st.expander("📈 2. 보유 종목 조회", expanded=False):
+        df_stock = load_holdings()
+        st.dataframe(
+            df_stock,
+            use_container_width=True,
+            hide_index=True
+        )
+    
+    run_analysis = st.button("🚀 분석 시작", type="primary", use_container_width=True)
+
     # 다른 파일의 함수를 불러와서 넣을 수도 있습니다.
     st.info("차트나 데이터를 여기에 띄웁니다.")
 
