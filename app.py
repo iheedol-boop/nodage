@@ -1,4 +1,11 @@
 import streamlit as st
+import FinanceDataReader as fdr
+import pandas as pd
+import plotly.express as px
+import os
+import libsql
+from dotenv import load_dotenv
+
 
 # 페이지 설정
 st.set_page_config(layout="wide")
