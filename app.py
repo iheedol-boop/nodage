@@ -3,7 +3,7 @@ import streamlit as st
 # 페이지 설정
 st.set_page_config(layout="wide")
 
-st.title("🚀대시보드")
+st.title("🚀 대시보드")
 
 # 상단 탭 생성
 tab1, tab2, tab3 = st.tabs(["홈", "분석 결과", "설정"])
