@@ -79,7 +79,7 @@ def load_holdings():
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
-st.markdown("##💰 자산 ")
+st.markdown("💰 자산 ")
 
 # 종목 리스트 캐시
 @st.cache_data(ttl=3600)
@@ -91,14 +91,14 @@ def get_stock_list():
 all_listing = get_stock_list()
 
 # ====================== 조회 섹션 ======================
-with st.expander("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
+with st.markdown("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
     df_acc = load_accounts()
     st.dataframe(
         df_acc,
         hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
     )
 
-with st.expander("📈 2. 보유 종목 조회", expanded=False):
+with st.markdown("📈 2. 보유 종목 조회", expanded=False):
     df_stock = load_holdings()
     st.dataframe(
         df_stock,
@@ -166,7 +166,7 @@ if run_analysis:
         analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
        
         # ====================== 종목별 실시간 변동 ======================
-        st.subheader("📊 종목별 실시간 변동 (통합)")
+        st.markdown("📊 종목별 실시간 변동 (통합)")
 
         # 1. 상승률 기준 내림차순 정렬 (ascending=False로 변경)
         unique_stock_display = analysis_stock.groupby("종목코드").agg({
@@ -195,7 +195,7 @@ if run_analysis:
 
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
-        st.subheader("🏦 계좌 및 종목별 계층 분석")
+        st.markdown("🏦 계좌 및 종목별 계층 분석")
 
         acc_stock_sum = analysis_stock.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
