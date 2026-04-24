@@ -207,7 +207,7 @@ if run_analysis:
 
         col1, col2 = st.columns(2)
         with col1:
-            for _, row in final_df.sort_values("총자산", ascending=False).iterrows():
+            for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
                 st.metric(
                     label=f"📂 {row['계좌명']}",
                     value=f"{int(row['총자산']):,}원",
