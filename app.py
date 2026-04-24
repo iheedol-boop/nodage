@@ -91,14 +91,14 @@ def get_stock_list():
 all_listing = get_stock_list()
 
 # ====================== 조회 섹션 ======================
-with st.markdown("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
+with st.expander("💳 1. 계좌 정보 조회", expanded=False): # 보기 편하도록 기본 접음
     df_acc = load_accounts()
     st.dataframe(
         df_acc,
         hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
     )
 
-with st.markdown("📈 2. 보유 종목 조회", expanded=False):
+with st.expander("📈 2. 보유 종목 조회", expanded=False):
     df_stock = load_holdings()
     st.dataframe(
         df_stock,
