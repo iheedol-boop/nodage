@@ -79,7 +79,7 @@ def load_holdings():
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
-st.subtitle("💰 자산 ")
+st.markdown("##💰 자산 ")
 
 # 종목 리스트 캐시
 @st.cache_data(ttl=3600)
