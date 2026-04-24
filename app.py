@@ -254,7 +254,8 @@ if run_analysis:
             fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
             fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
             st.plotly_chart(fig_sun
-                            #, use_container_width=True)
+                            #, use_container_width=True
+                           )
         with c4:  
             fig_sun_acc = px.sunburst(
                 hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
