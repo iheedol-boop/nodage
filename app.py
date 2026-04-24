@@ -235,7 +235,9 @@ if run_analysis:
             )
             fig_tree.update_traces(textinfo="label+value+percent parent")
             fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
-            st.plotly_chart(fig_tree, use_container_width=True)
+            st.plotly_chart(fig_tree
+                            #, use_container_width=True
+                           )
 
         # ====================== 종목별 Sunburst ======================
         st.divider()
@@ -251,7 +253,8 @@ if run_analysis:
             )
             fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
             fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun, use_container_width=True)
+            st.plotly_chart(fig_sun
+                            #, use_container_width=True)
         with c4:  
             fig_sun_acc = px.sunburst(
                 hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
@@ -263,7 +266,9 @@ if run_analysis:
             )
             fig_sun_acc.update_traces(textinfo="label+percent parent")
             fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun_acc, use_container_width=True)
+            st.plotly_chart(fig_sun_acc
+                            #, use_container_width=True
+                           )
             
     # 연결 종료
     conn.close()
