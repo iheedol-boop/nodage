@@ -177,7 +177,7 @@ if run_analysis:
             '변동률(%)': 'first',
             '보유수량': 'sum',
             '평가금액': 'sum'
-        }).reset_index().sort_values(by="변동률(%)", ascending=False)
+        }).reset_index().sort_values(by="변동률(%)", ascending=True)
         
         # 2. 정렬된 순서대로 인덱스를 재부여 (idx % 4 계산을 위해 필수)
         unique_stock_display = unique_stock_display.reset_index(drop=True)
