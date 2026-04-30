@@ -92,6 +92,8 @@ def load_deposit():
         return pd.DataFrame(columns=["계좌명", "원금", "시작일", "예금금리"])
    return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
 
+
+
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
 st.markdown("💰 자산 ")
