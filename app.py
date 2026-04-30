@@ -202,9 +202,7 @@ if run_analysis:
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
         analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
 
-
-        # 1. 주식 분석 데이터 생성 (기본 제공해주신 코드 완료 시점)     
-        # 2. 예금 데이터 불러오기
+        # 예금 데이터 불러오기
         df_deposit = load_deposit()
         
         if not df_deposit.empty:
@@ -226,25 +224,19 @@ if run_analysis:
             deposit_summary['자산분류'] = '예금'
             
             # 최종 통합 자산 데이터프레임
-            total_assets = pd.concat([stock_summary, deposit_summary], ignore_index=True)
+            stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
             
-            # 5. 전체 결과 출력
-            total_eval_amount = total_assets['평가금액'].sum()
-            st.subheader(f"총 자산 평가금액: {total_eval_amount:,.0f}원")
-            st.dataframe(total_assets)
         else:
             st.write("등록된 예금 정보가 없습니다.")
 
 
-    
-       
         # ====================== 0. 전체 통합 요약 (가장 먼저 표로 출력) ======================
          # === 0. 전체 통합 요약 (st.metric 버전) ===
         st.markdown("📋 전체 자산 현황 요약")
         
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
-        total_stock_eval = analysis_stock["평가금액"].sum()
+        total_stock_eval = stock_deposit["평가금액"].sum()
         total_asset = total_cash + total_stock_eval
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
