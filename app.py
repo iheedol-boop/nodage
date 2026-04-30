@@ -107,7 +107,8 @@ def calculate_deposit_value(row):
         interest = row['원금'] * (row['예금금리'] / 100) * (days_passed / 365)
         return int(row['원금'] + interest)
     except:
-        return row['원금'] # 오류 시 원금 반환
+        return row['예금금리']
+        #return row['원금'] # 오류 시 원금 반환
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
@@ -136,7 +137,7 @@ with st.expander("📈 2. 보유 종목 조회", expanded=False):
         df_stock,
         hide_index=True
     )
-with st.expander("📈 3. 보유 예금 조회", expanded=False):
+with st.expander("🚀 3. 보유 예금 조회", expanded=False):
     df_deposit = load_deposit()
     st.dataframe(
         df_deposit,
