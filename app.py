@@ -286,7 +286,7 @@ if run_analysis:
         st.divider()
         st.markdown("🏦 계좌 및 종목별 계층 분석")
 
-        acc_stock_sum = analysis_stock.groupby("계좌명")["평가금액"].sum().reset_index()
+        acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
 
@@ -304,7 +304,7 @@ if run_analysis:
                 )
 
         with col2:
-            tree_data = analysis_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
+            tree_data = stock_deposit[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
             cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
             cash_data['항목'] = "💰 예수금"
             hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
