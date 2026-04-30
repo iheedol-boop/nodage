@@ -119,7 +119,12 @@ with st.expander("📈 2. 보유 종목 조회", expanded=False):
         df_stock,
         hide_index=True
     )
-
+with st.expander("📈 3. 보유 예금 조회", expanded=False):
+    df_deposit = load_deposit()
+    st.dataframe(
+        df_deposit,
+        hide_index=True
+    )
 run_analysis = st.button("🚀 분석 시작", type="primary")
 
 # ====================== 분석 로직 ======================
