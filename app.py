@@ -107,8 +107,7 @@ def calculate_deposit_value(row):
         interest = row['원금'] * (row['예금금리'] / 100) * (days_passed / 365)
         return int(row['원금'] + interest)
     except:
-        return row['예금금리']
-        #return row['원금'] # 오류 시 원금 반환
+        return row['원금'] # 오류 시 원금 반환
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
