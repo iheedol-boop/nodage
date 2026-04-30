@@ -164,7 +164,34 @@ if run_analysis:
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
         analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
+
        
+        # ====================== 0. 전체 통합 요약 (가장 먼저 표로 출력) ======================
+        st.subheader("📋 전체 자산 현황 요약")
+        
+        # 데이터 집계
+        total_principal = df_acc["총 투자원금"].sum()
+        total_cash = df_acc["예수금"].sum()
+        total_stock_eval = analysis_stock["평가금액"].sum()
+        total_asset = total_cash + total_stock_eval
+        total_profit = total_asset - total_principal
+        total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
+
+        # 요약 데이터프레임 생성
+        summary_df = pd.DataFrame({
+            "구분": ["총 투자원금", "총 평가자산", "총 수익금", "전체 수익률"],
+            "금액/수치": [
+                f"{int(total_principal):,}원",
+                f"{int(total_asset):,}원",
+                f"{int(total_profit):+,}원",
+                f"{total_return_pct:+.2f}%"
+            ]
+        })
+
+        # 표 출력 (st.table은 정적이고 깔끔한 표를 보여줍니다)
+        st.table(summary_df)
+        st.divider()
+     
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목별 실시간 변동 (통합)")
 
