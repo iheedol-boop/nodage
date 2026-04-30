@@ -218,10 +218,10 @@ if run_analysis:
         
 
         # ====================== 주식 및 예금 통합 ====================== 
-        stock_summary = analysis_stock[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+        stock_summary = analysis_stock[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
         stock_summary['자산분류'] = '주식'
         
-        deposit_summary = df_deposit[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+        deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
         deposit_summary['자산분류'] = '예금'
         
         # 최종 통합 자산 데이터프레임
