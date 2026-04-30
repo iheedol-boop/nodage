@@ -228,7 +228,7 @@ if run_analysis:
         stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
 
         
-# --------> 전체 자산 현황
+        # === 0. 전체 통합 요약 (st.metric 버전) ===
         st.markdown("📋 전체 자산 현황 요약")
         
         total_principal = df_acc["총 투자원금"].sum()
@@ -238,20 +238,12 @@ if run_analysis:
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
         
-        summary_data = {
-            "항목": ["총 투자원금", "총 평가자산", "총 수익금", "전체 수익률"],
-            "금액/수치": [
-                f"{int(total_principal):,}원",
-                f"{int(total_asset):,}원",
-                f"{int(total_profit):+,}원",
-                f"{total_return_pct:.2f}%"
-            ]
-        }
-        
-        df_summary = pd.DataFrame(summary_data)
-        
-        # 표 출력 (인덱스 제거 및 가로 너비 꽉 채우기)
-        st.dataframe(df_summary, hide_index=True)
+        # 가로로 4개 지표 배치
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("총 투자원금", f"{int(total_principal):,}원")
+        m2.metric("총 평가자산", f"{int(total_asset):,}원")
+        m3.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
+        m4.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
         
         st.divider()
      
