@@ -278,7 +278,45 @@ if run_analysis:
             # st.divider()
 
     
+        # ====================== 계좌 및 종목별 계층 분석 ======================
+        st.divider()
+        st.markdown("🏦 계좌 및 종목별 계층 분석")
 
+        acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
+        final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
+        final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
+
+        final_df["수익률(%)"] = final_df.apply(
+            lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
+                st.metric(
+                    label=f"📂 {row['계좌명']}",
+                    value=f"{int(row['총자산']):,}원",
+                    delta=f"{row['수익률(%)']}%"
+                )
+
+        with col2:
+            tree_data = stock_deposit[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
+            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
+            cash_data['항목'] = "💰 예수금"
+            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
+            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
+
+            fig_tree = px.treemap(
+                hierarchical_df,
+                path=[px.Constant("전체 자산"), '계좌명', '항목'],
+                values='금액',
+                color='계좌명',
+                color_discrete_sequence=px.colors.qualitative.Pastel,
+                title="📊 계층적 자산 구성"
+            )
+            fig_tree.update_traces(textinfo="label+value+percent parent")
+            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
+            st.plotly_chart(fig_tree)
        
             
     # 연결 종료
