@@ -67,7 +67,7 @@ conn.execute("""
         "계좌명" TEXT NOT NULL,
         "원금" INTEGER DEFAULT 0,
         "시작일" TEXT NOT NULL,
-        "예금금리" REAL DEFAULT 0.0
+        "예금금리" TEXT NOT NULL
     )
 """)
 
