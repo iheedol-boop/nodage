@@ -95,7 +95,7 @@ def load_deposit():
 
 def calculate_deposit_value(row):
     """원금, 시작일, 금리를 바탕으로 오늘 기준 평가금액 계산"""
-    #try:
+    try:
         start_date = pd.to_datetime(row['시작일'])
         today = datetime.now()
         days_passed = (today - start_date).days
@@ -106,8 +106,8 @@ def calculate_deposit_value(row):
         # 예금금리가 3.5%라면 0.035로 계산되도록 /100 처리
         interest = row['원금'] * (row['예금금리'] / 100) * (days_passed / 365)
         return int(row['원금'] + interest)
-    #except:
-     #   return row['원금'] # 오류 시 원금 반환
+    except:
+        return row['원금'] # 오류 시 원금 반환
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
