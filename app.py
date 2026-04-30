@@ -90,7 +90,7 @@ def load_deposit():
     rows = conn.execute('SELECT "계좌명", "계좌명", "원금", "시작일", "예금금리" FROM deposit').fetchall()
     if not rows:
         return pd.DataFrame(columns=["계좌명", "계좌명", "원금", "시작일", "예금금리"])
-   return pd.DataFrame(rows, columns=["계좌명", "총 투자원금", "예수금"])
+   return pd.DataFrame(rows, columns=["계좌명", "계좌명", "원금", "시작일", "예금금리"])
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
