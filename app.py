@@ -90,7 +90,7 @@ def load_deposit():
     rows = conn.execute('SELECT  "계좌명", "원금", "시작일", "예금금리" FROM deposit').fetchall()
     if not rows:
         return pd.DataFrame(columns=["계좌명", "원금", "시작일", "예금금리"])
-   return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
+    return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
 
 
 
