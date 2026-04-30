@@ -251,7 +251,7 @@ if run_analysis:
         df_summary = pd.DataFrame(summary_data)
         
         # 표 출력 (인덱스 제거 및 가로 너비 꽉 채우기)
-        st.dataframe(df_summary, use_container_width=True, hide_index=True)
+        st.dataframe(df_summary, hide_index=True)
         
         st.divider()
      
