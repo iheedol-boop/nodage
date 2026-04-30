@@ -96,15 +96,15 @@ def load_deposit():
 def calculate_deposit_value(row):
     """원금, 시작일, 금리를 바탕으로 오늘 기준 평가금액 계산"""
     try:
-        #start_date = pd.to_datetime(row['시작일'])
-        #today = datetime.now()
-        #days_passed = (today - start_date).days
+        start_date = pd.to_datetime(row['시작일'])
+        today = datetime.now()
+        days_passed = (today - start_date).days
         
-        #if days_passed < 0: days_passed = 0 # 미래 날짜 시작 대비
+        if days_passed < 0: days_passed = 0 # 미래 날짜 시작 대비
         
         # 단리 계산 (일할 계산: 원금 * 금리 * 경과일수 / 365)
         # 예금금리가 3.5%라면 0.035로 계산되도록 /100 처리
-        interest = row['원금'] * (row['예금금리'] / 100) * (300 / 365)
+        interest = row['원금'] * (5.22 / 100) * (days_passed / 365)
         return int(row['원금'] + interest)
     except:
         return row['원금'] # 오류 시 원금 반환
