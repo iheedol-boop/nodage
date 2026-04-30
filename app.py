@@ -5,6 +5,7 @@ import plotly.express as px
 import os
 import libsql
 from dotenv import load_dotenv
+from datetime import datetime
 
 st.markdown("""
 <style>
@@ -92,7 +93,21 @@ def load_deposit():
         return pd.DataFrame(columns=["계좌명", "원금", "시작일", "예금금리"])
     return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
 
-
+def calculate_deposit_value(row):
+    """원금, 시작일, 금리를 바탕으로 오늘 기준 평가금액 계산"""
+    try:
+        start_date = pd.to_datetime(row['시작일'])
+        today = datetime.now()
+        days_passed = (today - start_date).days
+        
+        if days_passed < 0: days_passed = 0 # 미래 날짜 시작 대비
+        
+        # 단리 계산 (일할 계산: 원금 * 금리 * 경과일수 / 365)
+        # 예금금리가 3.5%라면 0.035로 계산되도록 /100 처리
+        interest = row['원금'] * (row['예금금리'] / 100) * (days_passed / 365)
+        return int(row['원금'] + interest)
+    except:
+        return row['원금'] # 오류 시 원금 반환
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
@@ -187,6 +202,41 @@ if run_analysis:
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
         analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
 
+
+        # 1. 주식 분석 데이터 생성 (기본 제공해주신 코드 완료 시점)     
+        # 2. 예금 데이터 불러오기
+        df_deposit = load_deposit()
+        
+        if not df_deposit.empty:
+            # 3. 예금 평가금액 계산
+            df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
+            df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
+            df_deposit['종목명'] = df_deposit['계좌명']
+            df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
+            
+            # 4. 주식과 예금 데이터 통합 (필요한 컬럼만 추출)
+            # 주식: 종목명, 현재가, 평가금액, 변동률(%) 등
+            # 예금: 계좌명(종목명), 원금, 평가금액, 변동률(%) 등
+            
+            # 공통 컬럼으로 정리
+            stock_summary = analysis_stock[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+            stock_summary['자산분류'] = '주식'
+            
+            deposit_summary = df_deposit[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+            deposit_summary['자산분류'] = '예금'
+            
+            # 최종 통합 자산 데이터프레임
+            total_assets = pd.concat([stock_summary, deposit_summary], ignore_index=True)
+            
+            # 5. 전체 결과 출력
+            total_eval_amount = total_assets['평가금액'].sum()
+            st.subheader(f"총 자산 평가금액: {total_eval_amount:,.0f}원")
+            st.dataframe(total_assets)
+        else:
+            st.write("등록된 예금 정보가 없습니다.")
+
+
+    
        
         # ====================== 0. 전체 통합 요약 (가장 먼저 표로 출력) ======================
          # === 0. 전체 통합 요약 (st.metric 버전) ===
