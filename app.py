@@ -104,7 +104,7 @@ def calculate_deposit_value(row):
         
         # 단리 계산 (일할 계산: 원금 * 금리 * 경과일수 / 365)
         # 예금금리가 3.5%라면 0.035로 계산되도록 /100 처리
-        interest = row['원금'] * (5.22) / 100) * (300 / 365)
+        interest = row['원금'] * (5.22 / 100) * (300 / 365)
         return int(row['원금'] + interest)
     except:
         return row['원금'] # 오류 시 원금 반환
