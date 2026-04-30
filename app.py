@@ -209,7 +209,7 @@ if run_analysis:
         
         df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
         df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
-        df_deposit['종목명'] = df_deposit['계좌명']
+        df_deposit['종목명'] = '정기예금'
         df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
         
         # 4. 주식과 예금 데이터 통합 (필요한 컬럼만 추출)
