@@ -318,6 +318,33 @@ if run_analysis:
             fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
             st.plotly_chart(fig_tree)
        
-            
+            # ====================== 종목별 Sunburst ======================
+            st.divider()
+            c3, c4 = st.columns(2)
+            with c3:
+                fig_sun = px.sunburst(
+                    hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                    path=['항목', '계좌명'],
+                    values='금액',
+                    title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
+                    color='항목',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
+                fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+                st.plotly_chart(fig_sun)
+            with c4:  
+                fig_sun_acc = px.sunburst(
+                    hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                    path=['계좌명', '항목'],
+                    values='금액',
+                    title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
+                    color='항목',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_sun_acc.update_traces(textinfo="label+percent parent")
+                fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+                st.plotly_chart(fig_sun_acc)
+                
     # 연결 종료
     conn.close()
