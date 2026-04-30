@@ -147,7 +147,9 @@ run_analysis = st.button("🚀 분석 시작", type="primary")
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
-        # 분석용 복사본 생성 
+       
+        
+        # ====================== 주식 데이터 ====================== 
         analysis_stock = df_stock.copy()
 
         unique_codes = analysis_stock["종목코드"].unique()
@@ -195,43 +197,38 @@ if run_analysis:
                 st.warning(f"{code} 데이터 로드 실패: {e}")
                 stock_info_dict[code] = {"종목명": "오류", "현재가": 0, "전일가": 0, "변동률(%)": 0}
 
-        # 분석용 데이터프레임에 정보 매핑
         analysis_stock["종목명"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
         analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
         analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
         analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
         analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
 
-        # 예금 데이터 불러오기
+        
+        # ====================== 예금 데이터 ====================== 
         df_deposit = load_deposit()
         
-        if not df_deposit.empty:
-            # 3. 예금 평가금액 계산
-            df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
-            df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
-            df_deposit['종목명'] = df_deposit['계좌명']
-            df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
-            
-            # 4. 주식과 예금 데이터 통합 (필요한 컬럼만 추출)
-            # 주식: 종목명, 현재가, 평가금액, 변동률(%) 등
-            # 예금: 계좌명(종목명), 원금, 평가금액, 변동률(%) 등
-            
-            # 공통 컬럼으로 정리
-            stock_summary = analysis_stock[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
-            stock_summary['자산분류'] = '주식'
-            
-            deposit_summary = df_deposit[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
-            deposit_summary['자산분류'] = '예금'
-            
-            # 최종 통합 자산 데이터프레임
-            stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
-            
-        else:
-            st.write("등록된 예금 정보가 없습니다.")
+        df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
+        df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
+        df_deposit['종목명'] = df_deposit['계좌명']
+        df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
+        
+        # 4. 주식과 예금 데이터 통합 (필요한 컬럼만 추출)
+        # 주식: 종목명, 현재가, 평가금액, 변동률(%) 등
+        # 예금: 계좌명(종목명), 원금, 평가금액, 변동률(%) 등
+        
 
+        # ====================== 주식 및 예금 통합 ====================== 
+        stock_summary = analysis_stock[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+        stock_summary['자산분류'] = '주식'
+        
+        deposit_summary = df_deposit[['종목명', '현재가', '평가금액', '변동률(%)']].copy()
+        deposit_summary['자산분류'] = '예금'
+        
+        # 최종 통합 자산 데이터프레임
+        stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
 
-        # ====================== 0. 전체 통합 요약 (가장 먼저 표로 출력) ======================
-         # === 0. 전체 통합 요약 (st.metric 버전) ===
+        
+        # === 0. 전체 통합 요약 (st.metric 버전) ===
         st.markdown("📋 전체 자산 현황 요약")
         
         total_principal = df_acc["총 투자원금"].sum()
@@ -282,73 +279,7 @@ if run_analysis:
 
     
 
-        # ====================== 계좌 및 종목별 계층 분석 ======================
-        st.divider()
-        st.markdown("🏦 계좌 및 종목별 계층 분석")
-
-        acc_stock_sum = analysis_stock.groupby("계좌명")["평가금액"].sum().reset_index()
-        final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
-        final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
-
-        final_df["수익률(%)"] = final_df.apply(
-            lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
-        )
-
-        col1, col2 = st.columns(2)
-        with col1:
-            for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
-                st.metric(
-                    label=f"📂 {row['계좌명']}",
-                    value=f"{int(row['총자산']):,}원",
-                    delta=f"{row['수익률(%)']}%"
-                )
-
-        with col2:
-            tree_data = analysis_stock[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
-            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
-            cash_data['항목'] = "💰 예수금"
-            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
-            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
-
-            fig_tree = px.treemap(
-                hierarchical_df,
-                path=[px.Constant("전체 자산"), '계좌명', '항목'],
-                values='금액',
-                color='계좌명',
-                color_discrete_sequence=px.colors.qualitative.Pastel,
-                title="📊 계층적 자산 구성"
-            )
-            fig_tree.update_traces(textinfo="label+value+percent parent")
-            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
-            st.plotly_chart(fig_tree)
-
-        # ====================== 종목별 Sunburst ======================
-        st.divider()
-        c3, c4 = st.columns(2)
-        with c3:
-            fig_sun = px.sunburst(
-                hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
-                path=['항목', '계좌명'],
-                values='금액',
-                title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
-                color='항목',
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
-            fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun)
-        with c4:  
-            fig_sun_acc = px.sunburst(
-                hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
-                path=['계좌명', '항목'],
-                values='금액',
-                title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
-                color='항목',
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            fig_sun_acc.update_traces(textinfo="label+percent parent")
-            fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-            st.plotly_chart(fig_sun_acc)
+       
             
     # 연결 종료
     conn.close()
