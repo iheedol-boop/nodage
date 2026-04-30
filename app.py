@@ -61,6 +61,16 @@ conn.execute("""
     )
 """)
 
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS deposit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT NOT NULL,
+        "원금" INTEGER DEFAULT 0,
+        "시작일" TEXT NOT NULL,
+        "예금금리" REAL DEFAULT 0.0
+    )
+""")
+
 # ====================== DB → DataFrame 로드 ======================
 def load_accounts():
     rows = conn.execute('SELECT "계좌명", "총 투자원금", "예수금" FROM accounts').fetchall()
