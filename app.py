@@ -168,7 +168,7 @@ if run_analysis:
        
         # ====================== 0. 전체 통합 요약 (가장 먼저 표로 출력) ======================
          # === 0. 전체 통합 요약 (st.metric 버전) ===
-        st.subheader("📋 전체 자산 현황 요약")
+        st.markdown("📋 전체 자산 현황 요약")
         
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
