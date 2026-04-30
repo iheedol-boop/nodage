@@ -231,6 +231,16 @@ if run_analysis:
 # --------> 전체 자산 현황
         st.markdown("📋 전체 자산 현황 요약")
         
+        total_principal = df_acc["총 투자원금"].sum()
+        total_cash = df_acc["예수금"].sum()
+        total_stock_eval = stock_deposit["평가금액"].sum()
+        total_asset = total_cash + total_stock_eval
+        total_profit = total_asset - total_principal
+        total_return_pct = (total_profit / total_principal * 100) 
+       
+        if total_principal > 0 
+        else 0
+        
         summary_data = {
             "항목": ["총 투자원금", "총 평가자산", "총 수익금", "전체 수익률"],
             "금액/수치": [
