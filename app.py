@@ -34,7 +34,44 @@ auth_token = os.getenv("TURSO_AUTH_TOKEN")
 if not url or not auth_token:
     st.error("❌ TURSO_DATABASE_URL 또는 TURSO_AUTH_TOKEN이 .env 파일에 설정되지 않았습니다.")
     st.stop()
+    
+# Embedded Replica 연결
+conn = libsql.connect(
+    "app.db",           # 로컬 SQLite 파일
+    sync_url=url,
+    auth_token=auth_token
+)
+conn.sync()             # remote → local 동기화
 
+# ====================== 테이블 생성 (없으면 자동 생성) ======================
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT UNIQUE NOT NULL,
+        "총 투자원금" INTEGER DEFAULT 0,
+        "예수금" INTEGER DEFAULT 0
+    )
+""")
+
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS holdings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT NOT NULL,
+        "종목코드" TEXT NOT NULL,
+        "보유수량" INTEGER DEFAULT 0
+    )
+""")
+
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS deposit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "계좌명" TEXT NOT NULL,
+        "원금" INTEGER DEFAULT 0,
+        "시작일" TEXT NOT NULL,
+        "예금금리" TEXT NOT NULL
+    )
+""")
+    
 # ====================== DB → DataFrame 로드 ======================
 def load_accounts():
     rows = conn.execute('SELECT "계좌명", "총 투자원금", "예수금" FROM accounts').fetchall()
@@ -139,43 +176,7 @@ run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="str
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
-    # Embedded Replica 연결
-    conn = libsql.connect(
-        "app.db",           # 로컬 SQLite 파일
-        sync_url=url,
-        auth_token=auth_token
-    )
-    conn.sync()             # remote → local 동기화
-    
-    # ====================== 테이블 생성 (없으면 자동 생성) ======================
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            "계좌명" TEXT UNIQUE NOT NULL,
-            "총 투자원금" INTEGER DEFAULT 0,
-            "예수금" INTEGER DEFAULT 0
-        )
-    """)
-    
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS holdings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            "계좌명" TEXT NOT NULL,
-            "종목코드" TEXT NOT NULL,
-            "보유수량" INTEGER DEFAULT 0
-        )
-    """)
-    
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS deposit (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            "계좌명" TEXT NOT NULL,
-            "원금" INTEGER DEFAULT 0,
-            "시작일" TEXT NOT NULL,
-            "예금금리" TEXT NOT NULL
-        )
-    """)
-
+        
         #=== 종목 시세 가져 오기 ===
         all_listing = get_stock_list()
         #=== 계좌 정보 (원금,예수금) ===
