@@ -223,6 +223,7 @@ if run_analysis:
         st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
         
         st.divider()
+     
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목별 실시간 변동 (통합)")
 
@@ -238,19 +239,19 @@ if run_analysis:
         
         # 2. 정렬된 순서대로 인덱스를 재부여
         unique_stock_display = unique_stock_display.reset_index(drop=True)
-
-        # 3. 화면 출력 (컬럼 없이 세로로 한 줄씩 출력)
+        
+        # 3. 화면 출력 (세로로 한 줄씩 출력)
         for idx, row in unique_stock_display.iterrows():
             # 현재가와 전일가 차이 계산
             change_amt = int(row['현재가'] - row['전일가'])
             
-            # 메트릭 출력 (컬럼 지정 없이 순차적 호출)
+            # 메트릭 출력 (컬럼 지정 없이 바로 호출)
             st.metric(
                 label=row['종목명'],
                 value=f"{int(row['현재가']):,}원",
                 delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
-            )
-    
+            )    
+            
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
         st.markdown("🏦 계좌 및 종목별 계층 분석")
@@ -263,58 +264,61 @@ if run_analysis:
             lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
         )
 
-   
-        for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
-        st.metric(
-            label=f"📂 {row['계좌명']}",
-            value=f"{int(row['총자산']):,}원",
-            delta=f"{row['수익률(%)']}%"
-        )
+        col1, col2 = st.columns(2)
+        with col1:
+            for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
+                st.metric(
+                    label=f"📂 {row['계좌명']}",
+                    value=f"{int(row['총자산']):,}원",
+                    delta=f"{row['수익률(%)']}%"
+                )
 
-        tree_data = stock_deposit[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
-        cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
-        cash_data['항목'] = "💰 예수금"
-        hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
-        hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
+        with col2:
+            tree_data = stock_deposit[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
+            cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
+            cash_data['항목'] = "💰 예수금"
+            hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
+            hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
 
-        fig_tree = px.treemap(
-            hierarchical_df,
-            path=[px.Constant("전체 자산"), '계좌명', '항목'],
-            values='금액',
-            color='계좌명',
-            color_discrete_sequence=px.colors.qualitative.Pastel,
-            title="📊 계층적 자산 구성"
-        )
-        fig_tree.update_traces(textinfo="label+value+percent parent")
-        fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
-        st.plotly_chart(fig_tree)
+            fig_tree = px.treemap(
+                hierarchical_df,
+                path=[px.Constant("전체 자산"), '계좌명', '항목'],
+                values='금액',
+                color='계좌명',
+                color_discrete_sequence=px.colors.qualitative.Pastel,
+                title="📊 계층적 자산 구성"
+            )
+            fig_tree.update_traces(textinfo="label+value+percent parent")
+            fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
+            st.plotly_chart(fig_tree)
        
-        # ====================== 종목별 Sunburst ======================
-        st.divider()
-        
-        fig_sun = px.sunburst(
-            hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
-            path=['항목', '계좌명'],
-            values='금액',
-            title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
-            color='항목',
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
-        fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-        st.plotly_chart(fig_sun)
-
-        fig_sun_acc = px.sunburst(
-            hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
-            path=['계좌명', '항목'],
-            values='금액',
-            title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
-            color='항목',
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        fig_sun_acc.update_traces(textinfo="label+percent parent")
-        fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
-        st.plotly_chart(fig_sun_acc)
+            # ====================== 종목별 Sunburst ======================
+            st.divider()
+            c3, c4 = st.columns(2)
+            with c3:
+                fig_sun = px.sunburst(
+                    hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                    path=['항목', '계좌명'],
+                    values='금액',
+                    title='🏦 항목별 자산 구성 (종목/예수금 > 계좌)',
+                    color='항목',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_sun.update_traces(textinfo="label+percent root", insidetextorientation='radial')
+                fig_sun.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+                st.plotly_chart(fig_sun)
+            with c4:  
+                fig_sun_acc = px.sunburst(
+                    hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
+                    path=['계좌명', '항목'],
+                    values='금액',
+                    title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
+                    color='항목',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_sun_acc.update_traces(textinfo="label+percent parent")
+                fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
+                st.plotly_chart(fig_sun_acc)
                 
     # 연결 종료
     conn.close()
