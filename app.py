@@ -109,25 +109,22 @@ def calculate_deposit_value(row):
     except:
         return row['원금'] # 오류 시 원금 반환
 
+def get_stock_list():
+    stocks = fdr.StockListing('KRX')[['Code', 'Name']]
+    etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
+    return pd.concat([stocks, etfs], ignore_index=True)
+     
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
-run_analysis = st.button("🚀 분석 시작", type="primary", width="stretch")
+run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="stretch")
+
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
-       
-        # 종목 리스트 캐시
-        @st.cache_data(ttl=3600)
-        def get_stock_list():
-            stocks = fdr.StockListing('KRX')[['Code', 'Name']]
-            etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
-            return pd.concat([stocks, etfs], ignore_index=True)
-        
         all_listing = get_stock_list()
         df_acc = load_accounts()
         df_stock = load_holdings()
         df_deposit = load_deposit()
-   
         # ====================== 주식 데이터 ====================== 
         analysis_stock = df_stock.copy()
 
