@@ -244,12 +244,12 @@ if run_analysis:
             # 현재가와 전일가 차이 계산
             change_amt = int(row['현재가'] - row['전일가'])
             
-        # 메트릭 출력 (컬럼 지정 없이 바로 호출)
-        st.metric(
-            label=row['종목명'],
-            value=f"{int(row['현재가']):,}원",
-            delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
-        )    
+            # 메트릭 출력 (컬럼 지정 없이 바로 호출)
+            st.metric(
+                label=row['종목명'],
+                value=f"{int(row['현재가']):,}원",
+                delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
+            )    
             
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
