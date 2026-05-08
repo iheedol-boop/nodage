@@ -93,6 +93,11 @@ def load_deposit():
         return pd.DataFrame(columns=["계좌명", "원금", "시작일", "예금금리"])
     return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
 
+def get_stock_list():
+    stocks = fdr.StockListing('KRX')[['Code', 'Name']]
+    etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
+    return pd.concat([stocks, etfs], ignore_index=True)
+    
 def calculate_deposit_value(row):
     """원금, 시작일, 금리를 바탕으로 오늘 기준 평가금액 계산"""
     try:
@@ -108,11 +113,6 @@ def calculate_deposit_value(row):
         return int(row['원금'] + interest)
     except:
         return row['원금'] # 오류 시 원금 반환
-
-def get_stock_list():
-    stocks = fdr.StockListing('KRX')[['Code', 'Name']]
-    etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
-    return pd.concat([stocks, etfs], ignore_index=True)
      
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
@@ -127,7 +127,6 @@ if run_analysis:
         df_deposit = load_deposit()
         # ====================== 주식 데이터 ====================== 
         analysis_stock = df_stock.copy()
-
         unique_codes = analysis_stock["종목코드"].unique()
         stock_info_dict = {}
 
