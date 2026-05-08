@@ -11,15 +11,15 @@ st.markdown("""
 <style>
 /* 라벨(종목명) 크기 조절 */
 [data-testid="stMetricLabel"] {
-    font-size: 0.4rem !important;
+    font-size: 0.8rem !important;
 }
 /* 값(가격) 크기 조절 */
 [data-testid="stMetricValue"] {
-    font-size: 0.6rem !important;
+    font-size: 1.2rem !important;
 }
 /* 변동폭(delta) 크기 조절 */
 [data-testid="stMetricDelta"] {
-    font-size: 0.35rem !important;
+    font-size: 0.7rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -222,19 +222,18 @@ if run_analysis:
         #st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
         #st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
 
-        col1, col2, col3, col4 = st.columns(4)
-
+        # 컬럼 두 개 생성
+        col1, col2 = st.columns(2)
+        
         with col1:
             st.metric("총 투자원금", f"{int(total_principal):,}원")
+            st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
+        
         with col2:
             st.metric("총 평가자산", f"{int(total_asset):,}원")
-        with col3:
-            st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
-        with col4:
             st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
-
-        st.divider()
         
+        st.divider()
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목별 실시간 변동 (통합)")
 
