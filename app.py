@@ -217,13 +217,24 @@ if run_analysis:
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
 
-        st.metric("총 투자원금", f"{int(total_principal):,}원")
-        st.metric("총 평가자산", f"{int(total_asset):,}원")
-        st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
-        st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
-        
+        #st.metric("총 투자원금", f"{int(total_principal):,}원")
+        #st.metric("총 평가자산", f"{int(total_asset):,}원")
+        #st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
+        #st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("총 투자원금", f"{int(total_principal):,}원")
+        with col2:
+            st.metric("총 평가자산", f"{int(total_asset):,}원")
+        with col3:
+            st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
+        with col4:
+            st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
+
         st.divider()
-     
+        
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목별 실시간 변동 (통합)")
 
