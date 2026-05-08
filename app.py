@@ -111,9 +111,7 @@ def calculate_deposit_value(row):
 
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
-st.markdown("💰 자산 ")
-run_analysis = st.button("🚀 분석 시작", type="primary")
-
+run_analysis = st.button("🚀 분석 시작", type="primary", width="stretch")
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
