@@ -180,18 +180,11 @@ if run_analysis:
 
         
         # ====================== 예금 데이터 ====================== 
-        df_deposit = load_deposit()
-        
         df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
         df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
         df_deposit['종목명'] = '정기예금'
         df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
         
-        # 4. 주식과 예금 데이터 통합 (필요한 컬럼만 추출)
-        # 주식: 종목명, 현재가, 평가금액, 변동률(%) 등
-        # 예금: 계좌명(종목명), 원금, 평가금액, 변동률(%) 등
-        
-
         # ====================== 주식 및 예금 통합 ====================== 
         stock_summary = analysis_stock[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
         stock_summary['자산분류'] = '주식'
