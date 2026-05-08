@@ -127,26 +127,7 @@ if run_analysis:
         
         all_listing = get_stock_list()
         
-        # ====================== 조회 섹션 ======================
-        with st.expander("💳 1. 원금 및 예수금", expanded=False): # 보기 편하도록 기본 접음
-            df_acc = load_accounts()
-            st.dataframe(
-                df_acc,
-                hide_index=True  # 인덱스 번호를 숨기면 더 깔끔합니다
-            )
-        
-        with st.expander("📈 2. 보유 수량", expanded=False):
-            df_stock = load_holdings()
-            st.dataframe(
-                df_stock,
-                hide_index=True
-            )
-        with st.expander("🏦 3. 예금", expanded=False):
-            df_deposit = load_deposit()
-            st.dataframe(
-                df_deposit,
-                hide_index=True
-            )
+
         # ====================== 주식 데이터 ====================== 
         analysis_stock = df_stock.copy()
 
