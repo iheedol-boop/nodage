@@ -121,12 +121,18 @@ run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="str
 # ====================== 분석 로직 ======================
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
+        
+        #=== 종목 시세 가져 오기 ===
         all_listing = get_stock_list()
+        #=== 계좌 정보 (원금,예수금) ===
         df_acc = load_accounts()
-        df_stock = load_holdings()
+        #=== 계좌 보유 수량 ===
+        df_holdings = load_holdings()
+        #=== 계좌 예금 정보 ===
         df_deposit = load_deposit()
+        
         # ====================== 주식 데이터 ====================== 
-        analysis_stock = df_stock.copy()
+        analysis_stock = df_holdings.copy()
         unique_codes = analysis_stock["종목코드"].unique()
         stock_info_dict = {}
 
