@@ -126,8 +126,10 @@ if run_analysis:
             return pd.concat([stocks, etfs], ignore_index=True)
         
         all_listing = get_stock_list()
-        
-
+        df_acc = load_accounts()
+        df_stock = load_holdings()
+        df_deposit = load_deposit()
+   
         # ====================== 주식 데이터 ====================== 
         analysis_stock = df_stock.copy()
 
