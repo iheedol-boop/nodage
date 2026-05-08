@@ -113,7 +113,62 @@ def calculate_deposit_value(row):
         return int(row['원금'] + interest)
     except:
         return row['원금'] # 오류 시 원금 반환
-     
+
+def analysis_stock():
+    analysis_stock = df_holdings.copy()
+    unique_codes = analysis_stock["종목코드"].unique()
+    stock_info_dict = {}
+
+    for code in unique_codes:
+        try:
+            df = fdr.DataReader(code).tail(3)
+
+            GOLD_ETF_CODE = "411060"
+            GOLD_MULTIPLIER = 7.15
+            
+            if len(df) >= 2:
+                current_price = int(round(df.iloc[-1]['Close']))
+                prev_close = int(round(df.iloc[-2]['Close']))
+                
+                # 금 ETF(ACE KRX금현물) 시세 조정
+                if code == GOLD_ETF_CODE:
+                    current_price = int(current_price * GOLD_MULTIPLIER)
+                    prev_close = int(prev_close * GOLD_MULTIPLIER)
+                
+                # 등락률 계산 (분모가 0인 경우 대비)
+                change_rate = round(((current_price - prev_close) / prev_close) * 100, 2) if prev_close != 0 else 0.0
+            
+            elif len(df) == 1:
+                current_price = prev_close = int(round(df.iloc[-1]['Close']))
+                if code == GOLD_ETF_CODE:
+                    current_price = prev_close = int(current_price * GOLD_MULTIPLIER)
+                change_rate = 0.0
+            
+            else:
+                current_price = prev_close = 0
+                change_rate = 0.0
+
+            name_match = all_listing[all_listing['Code'] == code]['Name']
+            name = name_match.values[0] if not name_match.empty else "미등록"
+
+            stock_info_dict[code] = {
+                "종목명": name,
+                "현재가": current_price,
+                "전일가": prev_close,
+                "변동률(%)": change_rate
+            }
+        except Exception as e:
+            st.warning(f"{code} 데이터 로드 실패: {e}")
+            stock_info_dict[code] = {"종목명": "오류", "현재가": 0, "전일가": 0, "변동률(%)": 0}
+
+    analysis_stock["종목명"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
+    analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
+    analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
+    analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
+    analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
+    return analysis_stock
+
+
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
 run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="stretch")
@@ -132,58 +187,8 @@ if run_analysis:
         df_deposit = load_deposit()
         
         # ====================== 주식 데이터 ====================== 
-        analysis_stock = df_holdings.copy()
-        unique_codes = analysis_stock["종목코드"].unique()
-        stock_info_dict = {}
-
-        for code in unique_codes:
-            try:
-                df = fdr.DataReader(code).tail(3)
-
-                GOLD_ETF_CODE = "411060"
-                GOLD_MULTIPLIER = 7.15
-                
-                if len(df) >= 2:
-                    current_price = int(round(df.iloc[-1]['Close']))
-                    prev_close = int(round(df.iloc[-2]['Close']))
-                    
-                    # 금 ETF(ACE KRX금현물) 시세 조정
-                    if code == GOLD_ETF_CODE:
-                        current_price = int(current_price * GOLD_MULTIPLIER)
-                        prev_close = int(prev_close * GOLD_MULTIPLIER)
-                    
-                    # 등락률 계산 (분모가 0인 경우 대비)
-                    change_rate = round(((current_price - prev_close) / prev_close) * 100, 2) if prev_close != 0 else 0.0
-                
-                elif len(df) == 1:
-                    current_price = prev_close = int(round(df.iloc[-1]['Close']))
-                    if code == GOLD_ETF_CODE:
-                        current_price = prev_close = int(current_price * GOLD_MULTIPLIER)
-                    change_rate = 0.0
-                
-                else:
-                    current_price = prev_close = 0
-                    change_rate = 0.0
-
-                name_match = all_listing[all_listing['Code'] == code]['Name']
-                name = name_match.values[0] if not name_match.empty else "미등록"
-
-                stock_info_dict[code] = {
-                    "종목명": name,
-                    "현재가": current_price,
-                    "전일가": prev_close,
-                    "변동률(%)": change_rate
-                }
-            except Exception as e:
-                st.warning(f"{code} 데이터 로드 실패: {e}")
-                stock_info_dict[code] = {"종목명": "오류", "현재가": 0, "전일가": 0, "변동률(%)": 0}
-
-        analysis_stock["종목명"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
-        analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
-        analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
-        analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
-        analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
-
+        
+        analysis_stock = analysis_stock()
         
         # ====================== 예금 데이터 ====================== 
         df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
