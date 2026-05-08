@@ -233,7 +233,9 @@ if run_analysis:
             st.metric("총 평가자산", f"{int(total_asset):,}원")
             st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
         with col3:
+            pass
         with col4:
+            pass
         st.divider()
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목별 실시간 변동 (통합)")
