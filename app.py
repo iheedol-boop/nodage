@@ -238,19 +238,19 @@ if run_analysis:
         
         # 2. 정렬된 순서대로 인덱스를 재부여
         unique_stock_display = unique_stock_display.reset_index(drop=True)
-        
-        # 3. 화면 출력 (세로로 한 줄씩 출력)
+
+        # 3. 화면 출력 (컬럼 없이 세로로 한 줄씩 출력)
         for idx, row in unique_stock_display.iterrows():
             # 현재가와 전일가 차이 계산
             change_amt = int(row['현재가'] - row['전일가'])
             
-            # 메트릭 출력 (컬럼 지정 없이 바로 호출)
+            # 메트릭 출력 (컬럼 지정 없이 순차적 호출)
             st.metric(
                 label=row['종목명'],
                 value=f"{int(row['현재가']):,}원",
                 delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
-            )    
-            
+            )
+    
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
         st.markdown("🏦 계좌 및 종목별 계층 분석")
