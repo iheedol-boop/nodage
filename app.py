@@ -205,13 +205,11 @@ if run_analysis:
         total_asset = total_cash + total_stock_eval
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
-        
-        # 가로로 4개 지표 배치
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("총 투자원금", f"{int(total_principal):,}원")
-        m2.metric("총 평가자산", f"{int(total_asset):,}원")
-        m3.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
-        m4.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
+
+        st.metric("총 투자원금", f"{int(total_principal):,}원")
+        st.metric("총 평가자산", f"{int(total_asset):,}원")
+        st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
+        st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
         
         st.divider()
      
