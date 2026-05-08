@@ -223,7 +223,7 @@ if run_analysis:
         #st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
 
         # 컬럼 두 개 생성
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
         
         with col1:
             st.metric("총 투자원금", f"{int(total_principal):,}원")
@@ -235,6 +235,10 @@ if run_analysis:
         with col3:
             pass
         with col4:
+            pass
+        with col5:
+            pass
+        with col6:
             pass
         st.divider()
         # ====================== 종목별 실시간 변동 ======================
