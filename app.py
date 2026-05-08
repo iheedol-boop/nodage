@@ -11,15 +11,15 @@ st.markdown("""
 <style>
 /* 라벨(종목명) 크기 조절 */
 [data-testid="stMetricLabel"] {
-    font-size: 0.8rem !important;
+    font-size: 0.4rem !important;
 }
 /* 값(가격) 크기 조절 */
 [data-testid="stMetricValue"] {
-    font-size: 1.2rem !important;
+    font-size: 0.6rem !important;
 }
 /* 변동폭(delta) 크기 조절 */
 [data-testid="stMetricDelta"] {
-    font-size: 0.7rem !important;
+    font-size: 0.35rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
