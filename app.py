@@ -219,8 +219,7 @@ if run_analysis:
 
         st.metric("총 투자원금", f"{int(total_principal):,}원")
         st.metric("총 평가자산", f"{int(total_asset):,}원")
-        st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{int(total_profit):+,}원")
-        st.metric("전체 수익률", f"{total_return_pct:.2f}%", delta=f"{total_return_pct:.2f}%")
+        st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{total_return_pct:.2f}%")
         
         st.divider()
      
