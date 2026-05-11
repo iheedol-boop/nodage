@@ -208,7 +208,7 @@ if run_analysis:
 
         
         # === 0. 전체 통합 요약 (st.metric 버전) ===
-        st.markdown("📋 전체 자산 현황 요약")
+        st.markdown("📋 전체 자산 현황")
         
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
@@ -218,7 +218,7 @@ if run_analysis:
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
 
         st.metric(
-                label=row['총투자금'],
+                label=total_principal,
                 value=f"{int(total_principal):,}원",
                 delta=f"{total_profit:+,}원 ({total_return_pct:+.2f}%)"
             )    
