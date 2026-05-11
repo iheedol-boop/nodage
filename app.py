@@ -260,7 +260,7 @@ if run_analysis:
         acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
-        final_df["수익금액"] = final_df["평가금액"] - final_df["총 투자원금"]
+        final_df["수익금액"] = final_df["총자산"] - final_df["총 투자원금"]
         
 
         final_df["수익률(%)"] = final_df.apply(
