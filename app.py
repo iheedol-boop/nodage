@@ -218,8 +218,8 @@ if run_analysis:
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
 
         st.metric(
-                label=total_principal,
-                value=f"{int(total_principal):,}원",
+                label=f"{int(total_principal):,}원",
+                value=f"{int(total_stock_eval):,}원",
                 delta=f"{total_profit:+,}원 ({total_return_pct:+.2f}%)"
             )    
         
