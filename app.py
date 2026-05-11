@@ -260,6 +260,8 @@ if run_analysis:
         acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
+        final_df["수익금액"] = final_df["평가금액"] - final_df["총 투자원금"]
+        
 
         final_df["수익률(%)"] = final_df.apply(
             lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
@@ -271,7 +273,8 @@ if run_analysis:
                 st.metric(
                     label=f"📂 {row['계좌명']}",
                     value=f"{int(row['총자산']):,}원",
-                    delta=f"{row['수익률(%)']}%"
+                    delta=f"{int(row['수익금액']):+,}원 ({row['수익률(%)']}%)"
+                    
                 )
 
         with col2:
