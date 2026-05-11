@@ -217,9 +217,11 @@ if run_analysis:
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
 
-        st.metric("총 투자원금", f"{int(total_principal):,}원")
-        st.metric("총 평가자산", f"{int(total_asset):,}원")
-        st.metric("총 수익금", f"{int(total_profit):+,}원", delta=f"{total_return_pct:.2f}%")
+        st.metric(
+                label=row['총투자금'],
+                value=f"{int(total_principal):,}원",
+                delta=f"{total_profit:+,}원 ({total_return_pct:+.2f}%)"
+            )    
         
         st.divider()
      
