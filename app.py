@@ -114,11 +114,14 @@ def calculate_deposit_value(row):
     except:
         return row['원금'] # 오류 시 원금 반환
 
-def analysis_stock():
-    analysis_stock = df_holdings.copy()
-    unique_codes = analysis_stock["종목코드"].unique()
+def stock_deposit():
+    all_listing = get_stock_list()
+    df_holdings = load_holdings()
+    df_deposit = load_deposit()
+    unique_codes = df_holdings["종목코드"].unique()
     stock_info_dict = {}
 
+    # ====================== 주식 평가 데이터 ====================== 
     for code in unique_codes:
         try:
             df = fdr.DataReader(code).tail(3)
@@ -161,12 +164,26 @@ def analysis_stock():
             st.warning(f"{code} 데이터 로드 실패: {e}")
             stock_info_dict[code] = {"종목명": "오류", "현재가": 0, "전일가": 0, "변동률(%)": 0}
 
-    analysis_stock["종목명"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
-    analysis_stock["현재가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
-    analysis_stock["전일가"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
-    analysis_stock["변동률(%)"] = analysis_stock["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
-    analysis_stock["평가금액"] = analysis_stock["보유수량"] * analysis_stock["현재가"]
-    return analysis_stock
+    analysis_holdings["종목명"] = analysis_holdings["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("종목명", "미등록"))
+    analysis_holdings["현재가"] = analysis_holdings["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("현재가", 0))
+    analysis_holdings["전일가"] = analysis_holdings["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("전일가", 0))
+    analysis_holdings["변동률(%)"] = analysis_holdings["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
+    analysis_holdings["평가금액"] = analysis_holdings["보유수량"] * analysis_holdings["현재가"]
+
+    # ====================== 예금 데이터 ====================== 
+    df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
+    df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
+    df_deposit['종목명'] = '정기예금'
+    df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
+    
+    # ====================== 주식과 예금 총합 ====================== 
+    stock_summary = analysis_holdings[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
+    stock_summary['자산분류'] = '주식'
+    deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
+    deposit_summary['자산분류'] = '예금'
+    stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
+
+    return stock_deposit
 
 
 # ====================== Streamlit UI ======================
@@ -177,34 +194,8 @@ run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="str
 if run_analysis:
     with st.spinner("시세 및 변동 정보 로딩 중..."):
         
-        #=== 종목 시세 가져 오기 ===
-        all_listing = get_stock_list()
-        #=== 계좌 정보 (원금,예수금) ===
         df_acc = load_accounts()
-        #=== 계좌 보유 수량 ===
-        df_holdings = load_holdings()
-        #=== 계좌 예금 정보 ===
-        df_deposit = load_deposit()
-        
-        # ====================== 주식 데이터 ====================== 
-        
-        analysis_stock = analysis_stock()
-        
-        # ====================== 예금 데이터 ====================== 
-        df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
-        df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
-        df_deposit['종목명'] = '정기예금'
-        df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
-        
-        # ====================== 주식 및 예금 통합 ====================== 
-        stock_summary = analysis_stock[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
-        stock_summary['자산분류'] = '주식'
-        
-        deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
-        deposit_summary['자산분류'] = '예금'
-        
-        # 최종 통합 자산 데이터프레임
-        stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
+        stock_deposit = stock_deposit()
 
         # === 전체 자산 
         st.markdown("📋 자산 현황")
@@ -239,14 +230,13 @@ if run_analysis:
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목 시세 변동")
 
+        df_holdings=load_holdings();
         # 1. 상승률 기준 내림차순 정렬 (ascending=False로 변경)
-        unique_stock_display = analysis_stock.groupby("종목코드").agg({
+        unique_stock_display = df_holdings.groupby("종목코드").agg({
             '종목명': 'first',
             '현재가': 'first',
             '전일가': 'first',
-            '변동률(%)': 'first',
-            '보유수량': 'sum',
-            '평가금액': 'sum'
+            '변동률(%)': 'first'
         }).reset_index().sort_values(by="변동률(%)", ascending=False) # 이 부분을 False로 수정
         
         # 2. 정렬된 순서대로 인덱스를 재부여
