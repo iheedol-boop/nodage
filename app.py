@@ -231,9 +231,7 @@ if run_analysis:
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목 시세 변동")
 
-        df_holdings=load_holdings();
-        # 1. 상승률 기준 내림차순 정렬 (ascending=False로 변경)
-        unique_stock_display = df_holdings.groupby("종목코드").agg({
+        unique_stock_display = stock_deposit.groupby("종목코드").agg({
             '종목명': 'first',
             '현재가': 'first',
             '전일가': 'first',
