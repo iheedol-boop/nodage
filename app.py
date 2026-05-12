@@ -231,11 +231,11 @@ if run_analysis:
         # ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목 시세 변동")
 
-        unique_stock_display = stock_deposit.groupby("종목명").agg({
+        unique_stock_display = stock_deposit[stock_deposit['종목명'] != '정기예금'].groupby("종목명").agg({
             '현재가': 'first',
             '전일가': 'first',
             '변동률(%)': 'first'
-        }).reset_index().sort_values(by="변동률(%)", ascending=False) # 이 부분을 False로 수정
+        }).reset_index().sort_values(by="변동률(%)", ascending=False)
         
         # 2. 정렬된 순서대로 인덱스를 재부여
         unique_stock_display = unique_stock_display.reset_index(drop=True)
