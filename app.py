@@ -172,24 +172,24 @@ def stock_deposit():
     analysis_holdings["평가금액"] = analysis_holdings["보유수량"] * analysis_holdings["현재가"]
 
     # ====================== 예금 데이터 ====================== 
-    df_deposit['현재가'] = df_deposit['원금'] # 예금에선 원금을 현재가로 취급 (비교용)
-    df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
     df_deposit['종목명'] = '정기예금'
-    df_deposit['변동률(%)'] = round(((df_deposit['평가금액'] - df_deposit['원금']) / df_deposit['원금']) * 100, 2)
+    df_deposit['현재가'] = df_deposit['원금']
+    df_deposit['전일가'] = df_deposit['원금']
+    df_deposit['변동률(%)'] = 0
+    df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
     
     # ====================== 주식과 예금 총합 ====================== 
-    stock_summary = analysis_holdings[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
+    stock_summary = analysis_holdings[['계좌명', '종목명', '현재가', '전일가', '평가금액', '변동률(%)']].copy()
     stock_summary['자산분류'] = '주식'
-    deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '평가금액', '변동률(%)']].copy()
+    deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '전일가', '평가금액', '변동률(%)']].copy()
     deposit_summary['자산분류'] = '예금'
     stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
 
     return stock_deposit
 
-
 # ====================== Streamlit UI ======================
 st.set_page_config(page_title="자산 관리", layout="wide")
-run_analysis = st.button("🚀 자산 정보 로딩", type="primary", width="stretch")
+run_analysis = st.button("🚀 실행하기", type="primary", width="stretch")
 
 # ====================== 분석 로직 ======================
 if run_analysis:
