@@ -274,18 +274,6 @@ if run_analysis:
         hierarchical_df = pd.concat([tree_data, cash_data], ignore_index=True)
         hierarchical_df = hierarchical_df[hierarchical_df['금액'] > 0]
 
-        fig_tree = px.treemap(
-            hierarchical_df,
-            path=[px.Constant("전체 자산"), '계좌명', '항목'],
-            values='금액',
-            color='계좌명',
-            color_discrete_sequence=px.colors.qualitative.Pastel,
-            title="계층적 자산"
-        )
-        fig_tree.update_traces(textinfo="label+value+percent parent")
-        fig_tree.update_layout(margin=dict(t=30, b=10, l=10, r=10), height=500)
-        st.plotly_chart(fig_tree)
-       
         fig_sun = px.sunburst(
             hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
             path=['항목', '계좌명'],
