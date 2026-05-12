@@ -208,21 +208,35 @@ if run_analysis:
 
         
         # === 0. 전체 통합 요약 (st.metric 버전) ===
-        st.markdown("📋 전체 자산 현황")
-        
+        st.markdown("📋 자산 현황")
+
+        # === 전체 자산 
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
         total_stock_eval = stock_deposit["평가금액"].sum()
         total_asset = total_cash + total_stock_eval
         total_profit = total_asset - total_principal
         total_return_pct = (total_profit / total_principal * 100) if total_principal > 0 else 0
-
         st.metric(
-                label="총투자금액",
+                label="전체",
                 value=f"{int(total_stock_eval):,}원",
                 delta=f"{total_profit:+,}원 ({total_return_pct:+.2f}%)"
             )    
         
+        # === 계좌별 자산 
+        acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
+        final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
+        final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
+        final_df["수익금액"] = final_df["총자산"] - final_df["총 투자원금"]
+        final_df["수익률(%)"] = final_df.apply(
+            lambda x: round(((x["총자산"] / x["총 투자원금"]) - 1) * 100, 2) if x["총 투자원금"] > 0 else 0, axis=1
+        )
+        for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
+            st.metric(
+                label=f"📂 {row['계좌명']}",
+                value=f"{int(row['총자산']):,}원",
+                delta=f"{int(row['수익금액']):+,}원 ({row['수익률(%)']}%)"
+            )
         st.divider()
      
         # ====================== 종목별 실시간 변동 ======================
