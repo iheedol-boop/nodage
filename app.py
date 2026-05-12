@@ -206,11 +206,8 @@ if run_analysis:
         # 최종 통합 자산 데이터프레임
         stock_deposit = pd.concat([stock_summary, deposit_summary], ignore_index=True)
 
-        
-        # === 0. 전체 통합 요약 (st.metric 버전) ===
-        st.markdown("📋 자산 현황")
-
         # === 전체 자산 
+        st.markdown("📋 자산 현황")
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
         total_stock_eval = stock_deposit["평가금액"].sum()
@@ -233,7 +230,7 @@ if run_analysis:
         )
         for _, row in final_df.sort_values("수익률(%)", ascending=False).iterrows():
             st.metric(
-                label=f"📂 {row['계좌명']}",
+                label=f"{row['계좌명']}",
                 value=f"{int(row['총자산']):,}원",
                 delta=f"{int(row['수익금액']):+,}원 ({row['수익률(%)']}%)"
             )
