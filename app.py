@@ -232,7 +232,6 @@ if run_analysis:
         st.markdown("📊 종목 시세 변동")
 
         unique_stock_display = stock_deposit.groupby("종목명").agg({
-            '종목명': 'first',
             '현재가': 'first',
             '전일가': 'first',
             '변동률(%)': 'first'
