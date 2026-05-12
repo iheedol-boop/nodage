@@ -117,6 +117,7 @@ def calculate_deposit_value(row):
 def stock_deposit():
     all_listing = get_stock_list()
     df_holdings = load_holdings()
+    analysis_holdings =df_holdings.copy()
     df_deposit = load_deposit()
     unique_codes = df_holdings["종목코드"].unique()
     stock_info_dict = {}
