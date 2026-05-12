@@ -122,7 +122,7 @@ def stock_deposit():
     unique_codes = df_holdings["종목코드"].unique()
     stock_info_dict = {}
 
-    # ====================== 주식 평가 데이터 ====================== 
+# ====================== 주식 평가 데이터 ====================== 
     for code in unique_codes:
         try:
             df = fdr.DataReader(code).tail(3)
@@ -171,14 +171,14 @@ def stock_deposit():
     analysis_holdings["변동률(%)"] = analysis_holdings["종목코드"].map(lambda x: stock_info_dict.get(x, {}).get("변동률(%)", 0))
     analysis_holdings["평가금액"] = analysis_holdings["보유수량"] * analysis_holdings["현재가"]
 
-    # ====================== 예금 데이터 ====================== 
+# ====================== 예금 데이터 ====================== 
     df_deposit['종목명'] = '정기예금'
     df_deposit['현재가'] = df_deposit['원금']
     df_deposit['전일가'] = df_deposit['원금']
     df_deposit['변동률(%)'] = 0
     df_deposit['평가금액'] = df_deposit.apply(calculate_deposit_value, axis=1)
     
-    # ====================== 주식과 예금 총합 ====================== 
+# ====================== 주식과 예금 총합 ====================== 
     stock_summary = analysis_holdings[['계좌명', '종목명', '현재가', '전일가', '평가금액', '변동률(%)']].copy()
     stock_summary['자산분류'] = '주식'
     deposit_summary = df_deposit[['계좌명', '종목명', '현재가', '전일가', '평가금액', '변동률(%)']].copy()
@@ -198,7 +198,7 @@ if run_analysis:
         df_acc = load_accounts()
         stock_deposit = stock_deposit()
 
-        # === 전체 자산 
+# ====================== 전체 자산 ======================
         st.markdown("📋 자산 현황")
         total_principal = df_acc["총 투자원금"].sum()
         total_cash = df_acc["예수금"].sum()
@@ -212,7 +212,7 @@ if run_analysis:
                 delta=f"{total_profit:+,}원 ({total_return_pct:+.2f}%)"
             )    
         
-        # === 계좌별 자산 
+# ====================== 계좌별 자산 ====================== 
         acc_stock_sum = stock_deposit.groupby("계좌명")["평가금액"].sum().reset_index()
         final_df = pd.merge(df_acc, acc_stock_sum, on="계좌명", how="left").fillna(0)
         final_df["총자산"] = final_df["평가금액"] + final_df["예수금"]
@@ -228,7 +228,7 @@ if run_analysis:
             )
         st.divider()
      
-        # ====================== 종목별 실시간 변동 ======================
+# ====================== 종목별 실시간 변동 ======================
         st.markdown("📊 종목 시세 변동")
 
         unique_stock_display = stock_deposit[stock_deposit['종목명'] != '정기예금'].groupby("종목명").agg({
@@ -237,22 +237,18 @@ if run_analysis:
             '변동률(%)': 'first'
         }).reset_index().sort_values(by="변동률(%)", ascending=False)
         
-        # 2. 정렬된 순서대로 인덱스를 재부여
         unique_stock_display = unique_stock_display.reset_index(drop=True)
         
-        # 3. 화면 출력 (세로로 한 줄씩 출력)
         for idx, row in unique_stock_display.iterrows():
-            # 현재가와 전일가 차이 계산
             change_amt = int(row['현재가'] - row['전일가'])
             
-            # 메트릭 출력 (컬럼 지정 없이 바로 호출)
             st.metric(
                 label=row['종목명'],
                 value=f"{int(row['현재가']):,}원",
                 delta=f"{change_amt:+,}원 ({row['변동률(%)']:+.2f}%)"
             )    
             
-        # ====================== 계좌 및 종목별 계층 분석 ======================
+# ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
         st.markdown("📊자산 분석")
         
@@ -286,5 +282,5 @@ if run_analysis:
         fig_sun_acc.update_layout(margin=dict(t=40, b=0, l=0, r=0), height=500)
         st.plotly_chart(fig_sun_acc)
                 
-    # 연결 종료
+# 연결 종료
     conn.close()
