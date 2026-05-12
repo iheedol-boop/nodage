@@ -237,7 +237,7 @@ if run_analysis:
         st.divider()
      
         # ====================== 종목별 실시간 변동 ======================
-        st.markdown("📊 종목별 실시간 변동 (통합)")
+        st.markdown("📊 종목 시세 변동")
 
         # 1. 상승률 기준 내림차순 정렬 (ascending=False로 변경)
         unique_stock_display = analysis_stock.groupby("종목코드").agg({
@@ -266,7 +266,7 @@ if run_analysis:
             
         # ====================== 계좌 및 종목별 계층 분석 ======================
         st.divider()
-        st.markdown("📊 분석 그래프")
+        st.markdown("📊자산 분석")
         
         tree_data = stock_deposit[['계좌명', '종목명', '평가금액']].rename(columns={'종목명': '항목', '평가금액': '금액'})
         cash_data = final_df[['계좌명', '예수금']].rename(columns={'예수금': '금액'})
@@ -278,7 +278,7 @@ if run_analysis:
             hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
             path=['항목', '계좌명'],
             values='금액',
-            title='항목별 자산 구성',
+            title='종목별 구성',
             color='항목',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
@@ -290,7 +290,7 @@ if run_analysis:
             hierarchical_df, # 위에서 만든 예수금 포함 데이터 활용
             path=['계좌명', '항목'],
             values='금액',
-            title='🏦 계좌별 자산 구성 (계좌 > 종목/예수금)',
+            title='계좌별 구성',
             color='항목',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
