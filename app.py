@@ -94,9 +94,8 @@ def load_deposit():
     return pd.DataFrame(rows, columns=["계좌명", "원금", "시작일", "예금금리"])
 
 def get_stock_list():
-    stocks = fdr.StockListing('KRX')[['Code', 'Name']]
     etfs = fdr.StockListing('ETF/KR')[['Symbol', 'Name']].rename(columns={'Symbol': 'Code'})
-    return pd.concat([stocks, etfs], ignore_index=True)
+    return pd.concat([etfs], ignore_index=True)
     
 def calculate_deposit_value(row):
     """원금, 시작일, 금리를 바탕으로 오늘 기준 평가금액 계산"""
